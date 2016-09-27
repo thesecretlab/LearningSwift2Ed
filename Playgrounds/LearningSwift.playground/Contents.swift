@@ -28,7 +28,7 @@ var myVariable = 123
 let myConstantVariable = 123
 // END variables_and_constants
 
-#if os(NOPE)
+#if false
 // BEGIN changing_constant_var
 myVariable += 5
     
@@ -49,14 +49,14 @@ var someVariable =
 someVariable = "No"; print(someVariable)
 // END multiple_statements
 
-#if os(NOPE)
+#if false
 // BEGIN must_assign_value_to_constants
 let someConstant : Int
 // ERROR: constants must contain values when they're declared
 // END must_assign_value_to_constants
 #endif
 
-#if os(NOPE)
+#if false
 // BEGIN cant_use_variables_before_they_have_value
 var someVariable : Int
 someVariable += 2
@@ -86,7 +86,8 @@ someVariable += 2
 
 // BEGIN dot_operator
 true.description // "true"
-4.advancedBy(3) // 7
+
+4.advanced(by: 3) // 7
 // END dot_operator
 
 // ------
@@ -107,7 +108,7 @@ aFloat += 0.2
 
 aFloat += 1
 
-#if os(NOPE)
+#if false
 // BEGIN incompatible_types
 // ERROR: Can't add a string to an integer
 anInteger += "Yes"
@@ -125,7 +126,7 @@ var anOptionalInteger : Int? = nil
 anOptionalInteger = 42
 // END optional_type
 
-#if os(NOPE)
+#if false
 // BEGIN optional_type_error
 // Nonoptional (regular), NOT allowed to be nil
 var aNonOptionalInteger = 42
@@ -169,7 +170,7 @@ let aString = String(2)
 // = "2"
 // END converting_types
 
-#if os(NOPE)
+#if false
 // BEGIN cant_directly_convert_types
 // ERROR: Can't directly convert between types
 let aString = anInteger
@@ -229,13 +230,13 @@ myArray.count
 
 // Inserting values in arrays
 // BEGIN inserting_in_array
-myArray.insert(5, atIndex: 0)
+myArray.insert(5, at: 0)
 // = [5,1,2,3,4]
 // END inserting_in_array
 
 // Removing items from arrays
 // BEGIN removing_from_array
-myArray.removeAtIndex(4)
+myArray.remove(at: 4)
 // = [5,1,2,3]
 // END removing_from_array
 
@@ -276,9 +277,10 @@ aNumberDictionary[21] = 23
 // END integer_keys_in_dict
 
 // BEGIN mixed_dict
-var aMixedDictionary = ["one": 1, "two": "twoooo"]
-// the type of this dictionary is [String: NSObject],
-// allowing it to have basically any type of value
+var aMixedDictionary = ["one": 1, "two": "twoooo"] as [String: Any]
+// (if you declare a dictionary with different types,
+// you need to add the type annotation to reassure the
+// compiler that that's actually what you wanted to do)
 // END mixed_dict
 
 // ------
@@ -488,7 +490,7 @@ func addNumbers(firstValue: Int, secondValue: Int) -> Int {
     return firstValue + secondValue
 }
 
-addNumbers(1, secondValue: 2)
+addNumbers(firstValue: 1, secondValue: 2)
 // END function_with_parameters
 
 // Functions can return multiple values, using a tuple
@@ -497,20 +499,20 @@ func processNumbers(firstValue: Int, secondValue: Int)
     -> (doubled: Int, quadrupled: Int) {
         return (firstValue * 2, secondValue * 4)
 }
-processNumbers(2, secondValue: 4)
+processNumbers(firstValue: 2, secondValue: 4)
 // END function_returning_tuple
 
 // If a returned tuple has named components (which is optional), you can refer
 // to those components by name:
 // BEGIN access_components_of_tuple
 // Accessing by number:
-processNumbers(2, secondValue: 4).1 // = 16
+processNumbers(firstValue: 2, secondValue: 4).1 // = 16
 // Same thing but with names:
-processNumbers(2, secondValue: 4).quadrupled // = 16
+processNumbers(firstValue: 2, secondValue: 4).quadrupled // = 16
 // END access_components_of_tuple
 
 // BEGIN function_with_no_parameter_names
-func subtractNumbers(num1 : Int, _ num2 : Int) -> Int {
+func subtractNumbers(_ num1 : Int, _ num2 : Int) -> Int {
     return num1 - num2
 }
 
@@ -543,7 +545,7 @@ func multiplyNumbers2 (firstNumber: Int, multiplier: Int = 2) -> Int {
     return firstNumber * multiplier;
 }
 // Parameters with default values can be omitted
-multiplyNumbers2(2) // = 4
+multiplyNumbers2(firstNumber: 2) // = 4
 // END function_with_default_parameter_values
 
 // Functions can receive a variable number of parameters
@@ -556,18 +558,18 @@ func sumNumbers(numbers: Int...) -> Int {
     }
     return total
 }
-sumNumbers(2,3,4,5) // = 14
+sumNumbers(numbers: 2,3,4,5) // = 14
 // END function_with_variable_parameters
 
 // Functions can change the value of variables that get passed to them using 'inout'
 // BEGIN function_using_inout_to_swap
-func swapValues(inout firstValue: Int, inout _ secondValue: Int) {
+func swapValues(firstValue: inout Int, secondValue: inout Int) {
     (firstValue, secondValue) = (secondValue, firstValue)
 }
 
 var swap1 = 2
 var swap2 = 3
-swapValues(&swap1, &swap2)
+swapValues(firstValue: &swap1, secondValue: &swap2)
 swap1 // = 3
 swap2 // = 2
 // END function_using_inout_to_swap
@@ -602,7 +604,7 @@ func doSomethingToNumber(aNumber: Int, thingToDo: (Int)->Int) -> Int {
 }
 
 // Give the 'timesThree' function to use as 'thingToDo'
-doSomethingToNumber(4, thingToDo: timesThree) // = 12
+doSomethingToNumber(aNumber: 4, thingToDo: timesThree) // = 12
 // END function_receiving_function_as_parameter
 
 // Functions can return other functions
@@ -615,7 +617,7 @@ func createAdder(numberToAdd: Int) -> (Int) -> Int {
     }
     return adder
 }
-var addTwo = createAdder(2)
+var addTwo = createAdder(numberToAdd: 2)
 
 // addTwo is now a function that can be called
 addTwo(2) // = 4
@@ -632,11 +634,11 @@ func createIncrementor(incrementAmount: Int) -> () -> Int { // <1>
     return incrementor // <5>
 }
 
-var incrementByTen = createIncrementor(10) // <6>
+var incrementByTen = createIncrementor(incrementAmount: 10) // <6>
 incrementByTen() // = 10 <7>
 incrementByTen() // = 20
 
-var incrementByFifteen = createIncrementor(15) // <8>
+var incrementByFifteen = createIncrementor(incrementAmount: 15) // <8>
 incrementByFifteen() // = 15 <9>
 // END function_capturing_values
 
@@ -645,7 +647,7 @@ incrementByFifteen() // = 15 <9>
 var numbers = [2,1,56,32,120,13]
 
 // Sort so that small numbers go before large numbers
-var numbersSorted = numbers.sort({
+var numbersSorted = numbers.sorted(by: {
     (n1: Int, n2: Int) -> Bool in return n2 > n1
 })
 // = [1, 2, 13, 32, 56, 120]
@@ -653,7 +655,7 @@ var numbersSorted = numbers.sort({
 
 // The types of parameters and the return type can be inferred
 // BEGIN closure_with_inferred_parameter_types
-var numbersSortedReverse = numbers.sort({n1, n2 in return n1 > n2})
+var numbersSortedReverse = numbers.sorted(by: {n1, n2 in return n1 > n2})
 // = [120, 56, 32, 13, 2, 1]
 // END closure_with_inferred_parameter_types
 
@@ -661,21 +663,21 @@ var numbersSortedReverse = numbers.sort({n1, n2 in return n1 > n2})
 // If you don't care about the names of the parameters, use $0, $1, etc
 // Also, if there's only a single line of code in the closure you can omit the 'return'
 // BEGIN closure_with_anonymous_parameters_and_no_return_keyword
-var numbersSortedAgain = numbers.sort({
+var numbersSortedAgain = numbers.sorted(by: {
     $1 > $0
 }) // = [1, 2, 13, 32, 56, 120]
 // END closure_with_anonymous_parameters_and_no_return_keyword
 
 // If the last parameter of a function is a closure, you can put the braces outside the parentheses
 // BEGIN closure_with_braces_outside_parentheses
-var numbersSortedReversedAgain = numbers.sort {
-    $0 > $1
+var numbersSortedReversedAgain = numbers.sorted {
+    $0 > $1 
 } // = [120, 56, 32, 13, 2, 1]
 // END closure_with_braces_outside_parentheses
 
 // The line breaks are also optional.
 // BEGIN closure_with_braces_outside_parentheses_no_newlines
-var numbersSortedReversedOneMoreTime = numbers.sort { $0 > $1 }
+var numbersSortedReversedOneMoreTime = numbers.sorted { $0 > $1 }
 // = [120, 56, 32, 13, 2, 1]
 // END closure_with_braces_outside_parentheses_no_newlines
 
@@ -927,7 +929,7 @@ var aBlinkingThing : Blinking
 
 aBlinkingThing = TrafficLight()
 
-aBlinkingThing.startBlinking(4.0) // prints "I am now blinking"
+aBlinkingThing.startBlinking(blinkSpeed: 4.0) // prints "I am now blinking"
 aBlinkingThing.blinkSpeed // = 4.0
 
 aBlinkingThing = Lighthouse()
@@ -951,7 +953,7 @@ extension Int {
 
 // BEGIN using_int_extension
 2.doubled // = 4
-4.multiplyWith(32) // = 128
+4.multiplyWith(anotherNumber: 32) // = 128
 // END using_int_extension
 
 
@@ -976,7 +978,7 @@ extension Int : Blinking {
     }
 }
 2.isBlinking // = false
-2.startBlinking(2.0) // prints "I am the integer 2. I do not blink."
+2.startBlinking(blinkSpeed: 2.0) // prints "I am the integer 2. I do not blink."
 // END extending_with_protocol
 
 // Access control
@@ -1025,7 +1027,7 @@ view.bounds
 
 // Calling Objective-C methods
 // BEGIN objc_method
-view.pointInside(CGPoint(x: 20, y: 20), withEvent:nil) // = true
+view.point(inside: CGPoint(x: 20, y: 20), with:nil) // = true
 // END objc_method
 
 // ------
@@ -1108,7 +1110,7 @@ extension InitAndDeinitExample {
 }
 
 // BEGIN init_failable_example
-var failableExample = InitAndDeinitExample(value: 6)
+var failableExample = InitAndDeinitExample.init(value: 6)
 // = nil
 // END init_failable_example
 
@@ -1199,8 +1201,8 @@ var i : Int? = 2
 
 // Converting a string to uppercase and lowercase
 // BEGIN string_case_changing
-string1.uppercaseString // = "HELLO"
-string2.lowercaseString // = "hello"
+string1.uppercased() // = "HELLO"
+string2.lowercased() // = "hello"
 // END string_case_changing
 // ------
 // Searching Strings
@@ -1214,7 +1216,7 @@ string2.lowercaseString // = "hello"
 // NSValues and NSNumbers contain values and numbers
 var anNSNumber : NSNumber = 2
 var aNumber = 3
-aNumber + anNSNumber.integerValue
+aNumber + anNSNumber.intValue
 
 
 // ------
@@ -1222,7 +1224,7 @@ aNumber + anNSNumber.integerValue
 
 // BEGIN string_to_data
 let stringToConvert = "Hello, Swift"
-let data = stringToConvert.dataUsingEncoding(NSUTF8StringEncoding)
+let data = stringToConvert.data(using: String.Encoding.utf8)
 // END string_to_data
 
 // ------
@@ -1230,13 +1232,13 @@ let data = stringToConvert.dataUsingEncoding(NSUTF8StringEncoding)
 
 // BEGIN loading_data_from_files
 // Loading from URL
-if let URL = NSURL(string: "https://oreilly.com") {
-    let loadedDataFromURL = NSData(contentsOfURL:URL)
+if let URL = URL(string: "https://oreilly.com") {
+    let loadedDataFromURL = try? Data(contentsOf: URL)
 }
 
 // Loading from a file
-if let filePath = NSBundle.mainBundle()
-    .pathForResource("SomeFile", ofType: "txt") {
+if let filePath = Bundle.main
+    .path(forResource: "SomeFile", ofType: "txt") {
         let loadedDataFromPath = NSData(contentsOfFile:filePath)
 }
 // END loading_data_from_files
@@ -1249,14 +1251,16 @@ class SerializableObject : NSObject, NSCoding {
     
     var name : String?
     
-    func encodeWithCoder(aCoder: NSCoder) {
-        aCoder.encodeObject(name!, forKey:"name")
+    func encode(with aCoder: NSCoder) {
+        aCoder.encode(name!, forKey:"name")
     }
+    
     override init() {
         self.name = "My Object"
     }
+    
     required init(coder aDecoder: NSCoder)  {
-        self.name = aDecoder.decodeObjectForKey("name") as? String
+        self.name = aDecoder.decodeObject(forKey: "name") as? String
     }
 }
 // END serializable_object
@@ -1268,13 +1272,13 @@ anObject.name = "My Thing That I'm Saving"
 
 // Converting it to data
 let objectConvertedToData =
-NSKeyedArchiver.archivedDataWithRootObject(anObject)
+NSKeyedArchiver.archivedData(withRootObject: anObject)
 
 // Converting it back
 // Note that the conversion might fail, so 'unarchiveObjectWithData' returns
 // an optional value. So, use 'as?' to check to see if it worked.
 let loadedObject =
-NSKeyedUnarchiver.unarchiveObjectWithData(objectConvertedToData)
+NSKeyedUnarchiver.unarchiveObject(with: objectConvertedToData)
     as? SerializableObject
 
 loadedObject?.name
@@ -1434,14 +1438,14 @@ class Tree <T> {
 let integerTree = Tree<Int>(value: 5)
 
 // Can add children that contain Ints
-integerTree.addChild(10)
-integerTree.addChild(5)
+integerTree.addChild(value: 10)
+integerTree.addChild(value: 5)
 
 // Tree of strings
 let stringTree = Tree<String>(value: "Hello")
 
-stringTree.addChild("Yes")
-stringTree.addChild("Internets")
+stringTree.addChild(value: "Yes")
+stringTree.addChild(value: "Internets")
 // END generics_usage
 
 // BEGIN enumeration_example
@@ -1560,7 +1564,7 @@ fruitSet.remove("apple")
 // BEGIN set_iteration
 for fruit in fruitSet {
     let fruitPlural = fruit + "s"
-    print("You know what's tasty? \(fruitPlural.uppercaseString).")
+    print("You know what's tasty? \(fruitPlural.uppercased()).")
 }
 // END set_iteration
 
@@ -1620,7 +1624,7 @@ let p = Point(x: 2, y: 3)
 // END structures_default_initialiser
 
 // BEGIN error_enum
-enum BankError : ErrorType {
+enum BankError : Error {
     // Not enough money in the account
     case NotEnoughFunds
     
@@ -1683,9 +1687,9 @@ class BankAccount {
 do {
     let vacationFund = try BankAccount(amount: 5)
     
-    try vacationFund.deposit(5)
+    try vacationFund.deposit(amount: 5)
     
-    try vacationFund.withdraw(11)
+    try vacationFund.withdraw(amount: 11)
     
 } catch let error as BankError {
     

@@ -25,7 +25,7 @@ class NoteListInterfaceController: WKInterfaceController {
     @IBOutlet var noteListTable: WKInterfaceTable!
     
     // BEGIN watch_handle_user_activity
-    override func handleUserActivity(userInfo: [NSObject : AnyObject]?) {
+    override func handleUserActivity(_ userInfo: [AnyHashable: Any]?) {
         if userInfo?["editing"] as? Bool == true {
             // Start creating a note
             createNote()
@@ -45,8 +45,8 @@ class NoteListInterfaceController: WKInterfaceController {
             "I love purchasing and reading books from O'Reilly Media!"
         ]
         
-        self.presentTextInputControllerWithSuggestions(suggestions,
-            allowedInputMode: WKTextInputMode.Plain) {
+        self.presentTextInputController(withSuggestions: suggestions,
+            allowedInputMode: WKTextInputMode.plain) {
             (results) -> Void in
             
                 if let text = results?.first as? String {
@@ -61,11 +61,11 @@ class NoteListInterfaceController: WKInterfaceController {
     // END watch_create_note
     
     // BEGIN watch_update_list_with_notes
-    func updateListWithNotes(notes: [SessionManager.NoteInfo]) {
+    func updateListWithNotes(_ notes: [SessionManager.NoteInfo]) {
         self.noteListTable.setNumberOfRows(notes.count, withRowType: "NoteRow")
         
-        for (i, note) in notes.enumerate() {
-            if let row = self.noteListTable.rowControllerAtIndex(i) as? NoteRow {
+        for (i, note) in notes.enumerated() {
+            if let row = self.noteListTable.rowController(at: i) as? NoteRow {
                 row.nameLabel.setText(note.name)
             }
         }
@@ -73,8 +73,8 @@ class NoteListInterfaceController: WKInterfaceController {
     // END watch_update_list_with_notes
     
     // BEGIN watch_list_awake
-    override func awakeWithContext(context: AnyObject?) {
-        super.awakeWithContext(context)
+    override func awake(withContext context: Any?) {
+        super.awake(withContext: context)
         
         // Configure interface objects here.
         
@@ -85,8 +85,8 @@ class NoteListInterfaceController: WKInterfaceController {
     // END watch_list_awake
     
     // BEGIN watch_list_context_for_segue
-    override func contextForSegueWithIdentifier(segueIdentifier: String,
-        inTable table: WKInterfaceTable, rowIndex: Int) -> AnyObject? {
+    override func contextForSegue(withIdentifier segueIdentifier: String,
+        in table: WKInterfaceTable, rowIndex: Int) -> Any? {
         
         // Was this the ShowNote segue?
         if segueIdentifier == "ShowNote" {

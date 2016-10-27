@@ -29,7 +29,7 @@ class LocationAttachmentViewController: UIViewController,
     // END mapview_property
     
     // BEGIN attachment_protocol_compliance
-    var attachmentFile : NSFileWrapper?
+    var attachmentFile : FileWrapper?
     
     var document : Document?
     // END attachment_protocol_compliance
@@ -44,19 +44,19 @@ class LocationAttachmentViewController: UIViewController,
     // END location_pins
     
     // BEGIN view_will_appear_location
-    override func viewWillAppear(animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         
         locationPinAnnotation.title = "Drag to place"
         
         // Start by assuming that we can't show the location
-        self.showCurrentLocationButton?.enabled = false
+        self.showCurrentLocationButton?.isEnabled = false
         
         if let data = attachmentFile?.regularFileContents {
             
             do {
                 guard let loadedData =
-                    try NSJSONSerialization.JSONObjectWithData(data,
-                        options: NSJSONReadingOptions())
+                    try JSONSerialization.jsonObject(with: data,
+                        options: JSONSerialization.ReadingOptions())
                         as? [String:CLLocationDegrees] else {
                     return
                 }
@@ -78,8 +78,8 @@ class LocationAttachmentViewController: UIViewController,
             }
             
             // Make the Done button save the attachment
-            let doneButton = UIBarButtonItem(barButtonSystemItem: .Done,
-                target: self, action: "addAttachmentAndClose")
+            let doneButton = UIBarButtonItem(barButtonSystemItem: .done,
+                target: self, action: #selector(LocationAttachmentViewController.addAttachmentAndClose))
             self.navigationItem.rightBarButtonItem = doneButton
             
             
@@ -87,13 +87,13 @@ class LocationAttachmentViewController: UIViewController,
             // Set up for editing: create a 'cancel' button that 
             // dismisses the view
             
-            let cancelButton = UIBarButtonItem(barButtonSystemItem: .Cancel,
-                target: self, action: "closeAttachmentWithoutSaving")
+            let cancelButton = UIBarButtonItem(barButtonSystemItem: .cancel,
+                target: self, action: #selector(LocationAttachmentViewController.closeAttachmentWithoutSaving))
             self.navigationItem.leftBarButtonItem = cancelButton
             
             // Now add the Done button that adds the attachment
-            let doneButton = UIBarButtonItem(barButtonSystemItem: .Done,
-                target: self, action: "addAttachmentAndClose")
+            let doneButton = UIBarButtonItem(barButtonSystemItem: .done,
+                target: self, action: #selector(LocationAttachmentViewController.addAttachmentAndClose))
             self.navigationItem.rightBarButtonItem = doneButton
             
             // Get notified about the user's location; we'll use
@@ -114,12 +114,12 @@ class LocationAttachmentViewController: UIViewController,
     // END location_view_did_load
     
     // BEGIN location_mapview_didupdatelocation
-    func mapView(mapView: MKMapView,
-        didUpdateUserLocation userLocation: MKUserLocation) {
+    func mapView(_ mapView: MKMapView,
+        didUpdate userLocation: MKUserLocation) {
         
         
         // If we know the user's location, we can zoom to it
-        self.showCurrentLocationButton?.enabled = true
+        self.showCurrentLocationButton?.isEnabled = true
         
         // We know the user's location - add the pin!
         
@@ -136,13 +136,13 @@ class LocationAttachmentViewController: UIViewController,
     // END location_mapview_didupdatelocation
     
     // BEGIN location_mapview_didfailtolocate
-    func mapView(mapView: MKMapView,
-         didFailToLocateUserWithError error: NSError) {
+    func mapView(_ mapView: MKMapView,
+         didFailToLocateUserWithError error: Error) {
         
         NSLog("Failed to get user location: \(error)")
         
         // We can't show the current location
-        self.showCurrentLocationButton?.enabled = false
+        self.showCurrentLocationButton?.isEnabled = false
         
         // Add the pin, but fall back to the default location
         if self.pinIsVisible == false {
@@ -153,15 +153,15 @@ class LocationAttachmentViewController: UIViewController,
     // END location_mapview_didfailtolocate
     
     // BEGIN location_mapview_viewforannotation
-    func mapView(mapView: MKMapView,
-        viewForAnnotation annotation: MKAnnotation) -> MKAnnotationView? {
+    func mapView(_ mapView: MKMapView,
+        viewFor annotation: MKAnnotation) -> MKAnnotationView? {
         
         let reuseID = "Location"
         
         if let pointAnnotation = annotation as? MKPointAnnotation {
             
             if let existingAnnotation = self.mapView?
-                .dequeueReusableAnnotationViewWithIdentifier(reuseID) {
+                .dequeueReusableAnnotationView(withIdentifier: reuseID) {
                     
                 existingAnnotation.annotation = annotation
                 return existingAnnotation
@@ -171,7 +171,7 @@ class LocationAttachmentViewController: UIViewController,
                     MKPinAnnotationView(annotation: pointAnnotation,
                         reuseIdentifier: reuseID)
                 
-                annotationView.draggable = true
+                annotationView.isDraggable = true
                 
                 annotationView.canShowCallout = true
                 
@@ -187,7 +187,7 @@ class LocationAttachmentViewController: UIViewController,
     
     // BEGIN location_mapview_pinisvisible
     var pinIsVisible : Bool {
-        return self.mapView!.annotations.contains({ (annotation) -> Bool in
+        return self.mapView!.annotations.contains(where: { (annotation) -> Bool in
             return annotation is MKPointAnnotation
         })
     }
@@ -208,9 +208,9 @@ class LocationAttachmentViewController: UIViewController,
             ]
             
             do {
-                let locationData = try NSJSONSerialization
-                    .dataWithJSONObject(locationDict,
-                        options: NSJSONWritingOptions())
+                let locationData = try JSONSerialization
+                    .data(withJSONObject: locationDict,
+                        options: JSONSerialization.WritingOptions())
 
                 let locationName : String
                 
@@ -235,7 +235,7 @@ class LocationAttachmentViewController: UIViewController,
             }
         }
         
-        self.presentingViewController?.dismissViewControllerAnimated(true,
+        self.presentingViewController?.dismiss(animated: true,
             completion: nil)
     }
     // END location_add_attachment_and_close
@@ -243,17 +243,17 @@ class LocationAttachmentViewController: UIViewController,
     
     // BEGIN location_close_attachment
     func closeAttachmentWithoutSaving() {
-        self.presentingViewController?.dismissViewControllerAnimated(true,
+        self.presentingViewController?.dismiss(animated: true,
             completion: nil)
     }
     // END location_close_attachment
     
 
     // BEGIN show_current_location
-    @IBAction func showCurrentLocation(sender: AnyObject) {
+    @IBAction func showCurrentLocation(_ sender: AnyObject) {
         
         // This will zoom to the current location
-        self.mapView?.setUserTrackingMode(.Follow, animated: true)
+        self.mapView?.setUserTrackingMode(.follow, animated: true)
         
     }
     // END show_current_location

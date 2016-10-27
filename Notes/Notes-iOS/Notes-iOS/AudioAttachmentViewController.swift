@@ -24,7 +24,7 @@ class AudioAttachmentViewController: UIViewController, AttachmentViewer,
     // END audio_button_outlets
     
     // BEGIN audio_attachment_viewer
-    var attachmentFile : NSFileWrapper?
+    var attachmentFile : FileWrapper?
     var document : Document?
     // END audio_attachment_viewer
     
@@ -72,26 +72,26 @@ class AudioAttachmentViewController: UIViewController, AttachmentViewer,
                 let settingsButton = "Settings"
 
                 let alert = UIAlertController(title: title, message: message,
-                    preferredStyle: .Alert)
+                    preferredStyle: .alert)
                 
                 // The Cancel button just closes the alert.
                 alert.addAction(UIAlertAction(title: cancelButton,
-                    style: .Cancel, handler: nil))
+                    style: .cancel, handler: nil))
                 
                 // The Settings button opens this app's settings page,
                 // allowing the user to grant us permission.
                 alert.addAction(UIAlertAction(title: settingsButton,
-                    style: .Default, handler: { (action) in
+                    style: .default, handler: { (action) in
                     
                         if let settingsURL
-                            = NSURL(string: UIApplicationOpenSettingsURLString) {
-                            UIApplication.sharedApplication()
+                            = URL(string: UIApplicationOpenSettingsURLString) {
+                            UIApplication.shared
                                 .openURL(settingsURL)
                         }
                         
                 }))
                 
-                self.presentViewController(alert,
+                self.present(alert,
                     animated: true,
                     completion: nil)
                 return
@@ -104,11 +104,11 @@ class AudioAttachmentViewController: UIViewController, AttachmentViewer,
             let fileName = self.attachmentFile?.preferredFilename ??
             "Recording \(Int(arc4random())).wav"
             
-            let temporaryURL = NSURL(fileURLWithPath: NSTemporaryDirectory())
-                .URLByAppendingPathComponent(fileName)
+            let temporaryURL = URL(fileURLWithPath: NSTemporaryDirectory())
+                .appendingPathComponent(fileName)
             
             do {
-                self.audioRecorder = try AVAudioRecorder(URL: temporaryURL,
+                self.audioRecorder = try AVAudioRecorder(url: temporaryURL,
                     settings: [:])
                 
                 self.audioRecorder?.record()
@@ -129,7 +129,7 @@ class AudioAttachmentViewController: UIViewController, AttachmentViewer,
         }
         recorder.stop()
         
-        self.audioPlayer = try? AVAudioPlayer(contentsOfURL: recorder.url)
+        self.audioPlayer = try? AVAudioPlayer(contentsOf: recorder.url)
         
         updateButtonState()
     }
@@ -154,7 +154,7 @@ class AudioAttachmentViewController: UIViewController, AttachmentViewer,
 	// END audio_stop_playing
     
 	// BEGIN audio_view_will_disappear
-    override func viewWillDisappear(animated: Bool) {
+    override func viewWillDisappear(_ animated: Bool) {
         if let recorder = self.audioRecorder {
             
             // We have a recorder, which means we have a recording to attach
@@ -191,56 +191,56 @@ class AudioAttachmentViewController: UIViewController, AttachmentViewer,
 	
     // BEGIN audio_update_button_state
     func updateButtonState() {
-        if self.audioRecorder?.recording == true ||
-            self.audioPlayer?.playing == true {
+        if self.audioRecorder?.isRecording == true ||
+            self.audioPlayer?.isPlaying == true {
 
             // We are either recording or playing, so
             // show the stop button
-            self.recordButton.hidden = true
-            self.playButton.hidden = true
+            self.recordButton.isHidden = true
+            self.playButton.isHidden = true
                 
-            self.stopButton.hidden = false
+            self.stopButton.isHidden = false
         } else if self.audioPlayer != nil {
 
             // We have a recording ready to go
-            self.recordButton.hidden = true
-            self.stopButton.hidden = true
+            self.recordButton.isHidden = true
+            self.stopButton.isHidden = true
             
-            self.playButton.hidden = false
+            self.playButton.isHidden = false
         } else {
 
             // We have no recording.
             
-            self.playButton.hidden = true
-            self.stopButton.hidden = true
+            self.playButton.isHidden = true
+            self.stopButton.isHidden = true
             
-            self.recordButton.hidden = false
+            self.recordButton.isHidden = false
         }
         
     }
     // END audio_update_button_state
 	
     // BEGIN audio_record_tapped
-    @IBAction func recordTapped(sender: AnyObject) {
+    @IBAction func recordTapped(_ sender: AnyObject) {
         beginRecording()
     }
     // END audio_record_tapped
     
 	// BEGIN audio_play_tapped
-    @IBAction func playTapped(sender: AnyObject) {
+    @IBAction func playTapped(_ sender: AnyObject) {
         beginPlaying()
     }
 	// END audio_play_tapped
 	
 	// BEGIN audio_stop_tapped
-    @IBAction func stopTapped(sender: AnyObject) {
+    @IBAction func stopTapped(_ sender: AnyObject) {
         stopRecording()
         stopPlaying()
     }
 	// END audio_stop_tapped
     
 	// BEGIN audio_player_did_finish_playing
-    func audioPlayerDidFinishPlaying(player: AVAudioPlayer,
+    func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer,
          successfully flag: Bool) {
         updateButtonState()
     }

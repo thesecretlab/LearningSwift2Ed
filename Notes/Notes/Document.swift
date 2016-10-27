@@ -11,24 +11,44 @@ import MapKit
 import AddressBook
 import CoreLocation
 import QuickLook
+fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+  switch (lhs, rhs) {
+  case let (l?, r?):
+    return l < r
+  case (nil, _?):
+    return true
+  default:
+    return false
+  }
+}
+
+fileprivate func >= <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+  switch (lhs, rhs) {
+  case let (l?, r?):
+    return l >= r
+  default:
+    return !(lhs < rhs)
+  }
+}
+
 
 // BEGIN filewrapper_icon
-extension NSFileWrapper {
+extension FileWrapper {
     
     dynamic var fileExtension : String? {
-        return self.preferredFilename?.componentsSeparatedByString(".").last
+        return self.preferredFilename?.components(separatedBy: ".").last
     }
     
     dynamic var thumbnailImage : NSImage {
         
         if let fileExtension = self.fileExtension {
-            return NSWorkspace.sharedWorkspace().iconForFileType(fileExtension)
+            return NSWorkspace.shared().icon(forFileType: fileExtension)
         } else {
-            return NSWorkspace.sharedWorkspace().iconForFileType("")
+            return NSWorkspace.shared().icon(forFileType: "")
         }
     }
     
-    func conformsToType(type: CFString) -> Bool {
+    func conformsToType(_ type: CFString) -> Bool {
         
         // Get the extension of this file
         guard let fileExtension = self.fileExtension else {
@@ -39,7 +59,7 @@ extension NSFileWrapper {
         
         // Get the file type of the attachment based on its extension
         guard let fileType = UTTypeCreatePreferredIdentifierForTag(
-            kUTTagClassFilenameExtension, fileExtension, nil)?
+            kUTTagClassFilenameExtension, fileExtension as CFString, nil)?
             .takeRetainedValue() else {
                 // If we can't figure out the file type
                 // from the extension, it also doesn't conform
@@ -61,14 +81,14 @@ class Document: NSDocument {
     
     // Directory file wrapper
     // BEGIN document_file_wrapper
-    var documentFileWrapper = NSFileWrapper(directoryWithFileWrappers: [:])
+    var documentFileWrapper = FileWrapper(directoryWithFileWrappers: [:])
     // END document_file_wrapper
     
     @IBOutlet var attachmentsList : NSCollectionView!
     
     // Attachments
     // BEGIN attached_files_property
-    dynamic var attachedFiles : [NSFileWrapper]? {
+    dynamic var attachedFiles : [FileWrapper]? {
         if let attachmentsFileWrappers =
             self.attachmentsDirectoryWrapper?.fileWrappers {
                 
@@ -83,7 +103,7 @@ class Document: NSDocument {
     // END attached_files_property
     
     // BEGIN attachments_directory
-    private var attachmentsDirectoryWrapper : NSFileWrapper? {
+    fileprivate var attachmentsDirectoryWrapper : FileWrapper? {
         
         guard let fileWrappers = self.documentFileWrapper.fileWrappers else {
             NSLog("Attempting to access document's contents, but none found!")
@@ -96,7 +116,7 @@ class Document: NSDocument {
         if attachmentsDirectoryWrapper == nil {
             
             attachmentsDirectoryWrapper =
-                NSFileWrapper(directoryWithFileWrappers: [:])
+                FileWrapper(directoryWithFileWrappers: [:])
             
             attachmentsDirectoryWrapper?.preferredFilename =
                 NoteDocumentFileNames.AttachmentsDirectory.rawValue
@@ -123,34 +143,34 @@ class Document: NSDocument {
     // END osx_window_nib_name
     
     // BEGIN did_load_nib
-    override func windowControllerDidLoadNib(windowController:
+    override func windowControllerDidLoadNib(_ windowController:
         NSWindowController) {
         
-        self.attachmentsList.registerForDraggedTypes([NSURLPboardType])
+        self.attachmentsList.register(forDraggedTypes: [NSURLPboardType])
     }
     // END did_load_nib
     
     // BEGIN read_from_file_wrapper
-    override func readFromFileWrapper(fileWrapper: NSFileWrapper,
+    override func read(from fileWrapper: FileWrapper,
         ofType typeName: String) throws {
         
         // Ensure that we have additional file wrappers in this file wrapper
         guard let fileWrappers = fileWrapper.fileWrappers else {
-            throw err(.CannotLoadFileWrappers)
+            throw err(.cannotLoadFileWrappers)
         }
         
         // Ensure that we can access the document text
         guard let documentTextData =
             fileWrappers[NoteDocumentFileNames.TextFile.rawValue]?
                 .regularFileContents else {
-            throw err(.CannotLoadText)
+            throw err(.cannotLoadText)
         }
         
         // BEGIN error_example
         // Load the text data as RTF
-        guard let documentText = NSAttributedString(RTF: documentTextData,
+        guard let documentText = NSAttributedString(rtf: documentTextData,
             documentAttributes: nil) else {
-            throw err(.CannotLoadText)
+            throw err(.cannotLoadText)
         }
         // END error_example
         
@@ -163,11 +183,11 @@ class Document: NSDocument {
     // END read_from_file_wrapper
     
     // BEGIN file_wrapper_of_type
-    override func fileWrapperOfType(typeName: String) throws -> NSFileWrapper {
+    override func fileWrapper(ofType typeName: String) throws -> FileWrapper {
         
         // BEGIN file_wrapper_of_type_rtf_load
-        let textRTFData = try self.text.dataFromRange(
-            NSRange(0..<self.text.length),
+        let textRTFData = try self.text.data(
+            from: NSRange(0..<self.text.length),
             documentAttributes: [
                 NSDocumentTypeDocumentAttribute: NSRTFTextDocumentType
             ]
@@ -187,13 +207,13 @@ class Document: NSDocument {
         let thumbnailImageData =
             self.iconImageDataWithSize(CGSize(width: 512, height: 512))!
         let thumbnailWrapper =
-            NSFileWrapper(regularFileWithContents: thumbnailImageData)
+            FileWrapper(regularFileWithContents: thumbnailImageData)
         
         let quicklookPreview =
-            NSFileWrapper(regularFileWithContents: textRTFData)
+            FileWrapper(regularFileWithContents: textRTFData)
         
         let quickLookFolderFileWrapper =
-            NSFileWrapper(directoryWithFileWrappers: [
+            FileWrapper(directoryWithFileWrappers: [
             NoteDocumentFileNames.QuickLookTextFile.rawValue: quicklookPreview,
             NoteDocumentFileNames.QuickLookThumbnail.rawValue: thumbnailWrapper
             ])
@@ -212,8 +232,8 @@ class Document: NSDocument {
         // END file_wrapper_of_type_quicklook
         
         // Save the text data into the file
-        self.documentFileWrapper.addRegularFileWithContents(
-            textRTFData,
+        self.documentFileWrapper.addRegularFile(
+            withContents: textRTFData,
             preferredFilename: NoteDocumentFileNames.TextFile.rawValue
         )
         
@@ -229,10 +249,10 @@ class Document: NSDocument {
 
 
     // BEGIN add_attachment_method
-    @IBAction func addAttachment(sender: NSButton) {
+    @IBAction func addAttachment(_ sender: NSButton) {
         
         if let viewController = AddAttachmentViewController(
-            nibName:"AddAttachmentViewController", bundle:NSBundle.mainBundle()
+            nibName:"AddAttachmentViewController", bundle:Bundle.main
             ) {
             
             // BEGIN add_attachment_method_delegate
@@ -241,12 +261,12 @@ class Document: NSDocument {
             
             self.popover = NSPopover()
             
-            self.popover?.behavior = .Transient
+            self.popover?.behavior = .transient
             
             self.popover?.contentViewController = viewController
             
-            self.popover?.showRelativeToRect(sender.bounds,
-                ofView: sender, preferredEdge: NSRectEdge.MaxY)
+            self.popover?.show(relativeTo: sender.bounds,
+                of: sender, preferredEdge: NSRectEdge.maxY)
         }
         
     }
@@ -255,21 +275,21 @@ class Document: NSDocument {
     
     
     // BEGIN add_attachment_at_url
-    func addAttachmentAtURL(url:NSURL) throws {
+    func addAttachmentAtURL(_ url:URL) throws {
         
         guard attachmentsDirectoryWrapper != nil else {
-            throw err(.CannotAccessAttachments)
+            throw err(.cannotAccessAttachments)
         }
         
-        self.willChangeValueForKey("attachedFiles")
+        self.willChangeValue(forKey: "attachedFiles")
         
-        let newAttachment = try NSFileWrapper(URL: url,
-            options: NSFileWrapperReadingOptions.Immediate)
+        let newAttachment = try FileWrapper(url: url,
+            options: FileWrapper.ReadingOptions.immediate)
         
         attachmentsDirectoryWrapper?.addFileWrapper(newAttachment)
         
-        self.updateChangeCount(.ChangeDone)
-        self.didChangeValueForKey("attachedFiles")
+        self.updateChangeCount(.changeDone)
+        self.didChangeValue(forKey: "attachedFiles")
     }
     // END add_attachment_at_url
     
@@ -288,9 +308,9 @@ extension Document : AddAttachmentDelegate {
         panel.canChooseDirectories = false
         panel.canChooseFiles = true
         
-        panel.beginWithCompletionHandler { (result) -> Void in
+        panel.begin { (result) -> Void in
             if result == NSModalResponseOK,
-                let resultURL = panel.URLs.first {
+                let resultURL = panel.urls.first {
             
                 do {
                     // We were given a URL - copy it in!
@@ -309,9 +329,9 @@ extension Document : AddAttachmentDelegate {
                         
                         // Present the error in a sheet
                         NSApp.presentError(error,
-                            modalForWindow: window,
+                            modalFor: window,
                             delegate: nil,
-                            didPresentSelector: nil,
+                            didPresent: nil,
                             contextInfo: nil)
                         
                         
@@ -333,31 +353,43 @@ extension Document : AddAttachmentDelegate {
 // BEGIN collectionview_dragndrop
 extension Document : NSCollectionViewDelegate {
     
-    func collectionView(collectionView: NSCollectionView,
+    /*
+    public func collectionView(_ collectionView: NSCollectionView,
+                               validateDrop draggingInfo: NSDraggingInfo,
+                               proposedIndexPath proposedDropIndexPath: AutoreleasingUnsafeMutablePointer<NSIndexPath>,
+                               dropOperation proposedDropOperation: UnsafeMutablePointer<NSCollectionViewDropOperation>) -> NSDragOperation*/
+    
+    func collectionView(_ collectionView: NSCollectionView,
         validateDrop draggingInfo: NSDraggingInfo,
         proposedIndexPath proposedDropIndexPath:
-            AutoreleasingUnsafeMutablePointer<NSIndexPath?>,
+            AutoreleasingUnsafeMutablePointer<NSIndexPath>,
         dropOperation proposedDropOperation:
             UnsafeMutablePointer<NSCollectionViewDropOperation>)
         -> NSDragOperation {
             
         // Indicate to the user that if they release the mouse button,
         // it will "copy" whatever they're dragging.
-        return NSDragOperation.Copy
+        return NSDragOperation.copy
     }
     
-    
-    func collectionView(collectionView: NSCollectionView,
+    func collectionView(_ collectionView: NSCollectionView,
         acceptDrop draggingInfo: NSDraggingInfo,
-        indexPath: NSIndexPath,
+        indexPath: IndexPath,
         dropOperation: NSCollectionViewDropOperation) -> Bool {
             
         // Get the pasteboard that contains the info the user dropped
         let pasteboard = draggingInfo.draggingPasteboard()
         
+        // We need to check to see if the pasteboard contains a URL.
+        // If it does, we also need to create the URL from the
+        // pasteboard contents. The initialiser for this is in the
+        // NSURL type (not URL!), so we use that, and then convert
+        // it to URL.
+        
         // If the pasteboard contains a URL, and we can get that URL...
         if pasteboard.types?.contains(NSURLPboardType) == true,
-            let url = NSURL(fromPasteboard: pasteboard)
+            
+            let url = NSURL(from: pasteboard) as? URL
         {
             // Then attempt to add that as an attachment!
             do {
@@ -391,7 +423,7 @@ extension Document : NSCollectionViewDelegate {
 extension Document : NSCollectionViewDataSource {
     
     // BEGIN collectionview_datasource_numberofitems
-    func collectionView(collectionView: NSCollectionView,
+    func collectionView(_ collectionView: NSCollectionView,
         numberOfItemsInSection section: Int) -> Int {
             
         // The number of items is equal to the number of
@@ -402,16 +434,16 @@ extension Document : NSCollectionViewDataSource {
     // END collectionview_datasource_numberofitems
     
     // BEGIN collectionview_datasource_item
-    func collectionView(collectionView: NSCollectionView,
-        itemForRepresentedObjectAtIndexPath indexPath: NSIndexPath)
+    func collectionView(_ collectionView: NSCollectionView,
+        itemForRepresentedObjectAt indexPath: IndexPath)
         -> NSCollectionViewItem {
             
         // Get the attachment that this cell should represent
-        let attachment = self.attachedFiles![indexPath.item]
+        let attachment = self.attachedFiles![(indexPath as NSIndexPath).item]
         
         // Get the cell itself
         let item = collectionView
-            .makeItemWithIdentifier("AttachmentCell", forIndexPath: indexPath)
+            .makeItem(withIdentifier: "AttachmentCell", for: indexPath)
             as! AttachmentCell
         
         // Display the image and file extension in the ecell
@@ -432,11 +464,11 @@ extension Document : NSCollectionViewDataSource {
 
 // BEGIN document_open_selected_attachment
 extension Document : AttachmentCellDelegate {
-    func openSelectedAttachment(collectionItem: NSCollectionViewItem) {
+    func openSelectedAttachment(_ collectionItem: NSCollectionViewItem) {
         
         // Get the index of this item, or bail out
-        guard let selectedIndex = self.attachmentsList
-            .indexPathForItem(collectionItem)?.item else {
+        guard let selectedIndex = (self.attachmentsList
+            .indexPath(for: collectionItem) as NSIndexPath?)?.item else {
             return
         }
         
@@ -446,7 +478,7 @@ extension Document : AttachmentCellDelegate {
         }
     
         // First, ensure that the document is saved
-        self.autosaveWithImplicitCancellability(false,
+        self.autosave(withImplicitCancellability: false,
                                         completionHandler: { (error) -> Void in
             
             // BEGIN document_open_selected_attachment_location
@@ -454,8 +486,8 @@ extension Document : AttachmentCellDelegate {
             // to get JSON data out of it...
             if attachment.conformsToType(kUTTypeJSON),
                 let data = attachment.regularFileContents,
-                let json = try? NSJSONSerialization
-                    .JSONObjectWithData(data, options: NSJSONReadingOptions())
+                let json = try? JSONSerialization
+                    .jsonObject(with: data, options: JSONSerialization.ReadingOptions())
                     as? NSDictionary  {
                 
                         // And if that JSON data includes lat and long entries...
@@ -477,22 +509,22 @@ extension Document : AttachmentCellDelegate {
                             let mapItem = MKMapItem(placemark: placemark)
                             
                             // And open the map item in the Maps app!
-                            mapItem.openInMapsWithLaunchOptions(nil)
+                            mapItem.openInMaps(launchOptions: nil)
                             
                         }
             } else {
                 // END document_open_selected_attachment_location
                 
                 var url = self.fileURL
-                url = url?.URLByAppendingPathComponent(
+                url = url?.appendingPathComponent(
                     NoteDocumentFileNames.AttachmentsDirectory.rawValue,
                         isDirectory: true)
                 
                 url = url?
-                    .URLByAppendingPathComponent(attachment.preferredFilename!)
+                    .appendingPathComponent(attachment.preferredFilename!)
                 
                 if let path = url?.path {
-                    NSWorkspace.sharedWorkspace().openFile(
+                    NSWorkspace.shared().openFile(
                         path, withApplication: nil, andDeactivate: true)
                 }
                 
@@ -510,7 +542,7 @@ extension Document : AttachmentCellDelegate {
 
 // BEGIN attachment_view_delegate_protocol
 @objc protocol AttachmentCellDelegate : NSObjectProtocol {
-    func openSelectedAttachment(collectionViewItem : NSCollectionViewItem)
+    func openSelectedAttachment(_ collectionViewItem : NSCollectionViewItem)
 }
 // END attachment_view_delegate_protocol
 
@@ -530,15 +562,15 @@ extension Document : AttachmentCellDelegate {
 class FlatFileDocumentExample : NSDocument {
 
     // BEGIN read_from_data
-    override func readFromData(data: NSData, ofType typeName: String) throws {
+    override func read(from data: Data, ofType typeName: String) throws {
         // Load data from "data".
     }
     // END read_from_data
 
     // BEGIN data_of_type
-    override func dataOfType(typeName: String) throws -> NSData {
+    override func data(ofType typeName: String) throws -> Data {
         // Return an NSData object. Here's an example:
-        return "Hello".dataUsingEncoding(NSUTF8StringEncoding)!
+        return "Hello".data(using: String.Encoding.utf8)!
     }
     // END data_of_type
 }
@@ -548,7 +580,7 @@ class FlatFileDocumentExample : NSDocument {
 extension Document {
     
     // BEGIN document_icon_data
-    func iconImageDataWithSize(size: CGSize) -> NSData? {
+    func iconImageDataWithSize(_ size: CGSize) -> Data? {
         
         let image = NSImage(size: size)
         
@@ -558,26 +590,21 @@ extension Document {
         
         // Fill the background with white
         let backgroundRect = NSBezierPath(rect: entireImageRect)
-        NSColor.whiteColor().setFill()
+        NSColor.white.setFill()
         backgroundRect.fill()
         
         if self.attachedFiles?.count >= 1 {
             // Render our text, and the first attachment
             let attachmentImage = self.attachedFiles?[0].thumbnailImage
             
-            var firstHalf : CGRect = CGRectZero
-            var secondHalf : CGRect = CGRectZero
+            let result = entireImageRect.divided(atDistance: entireImageRect.size.height / 2.0, from: CGRectEdge.minYEdge)
             
-            CGRectDivide(entireImageRect,
-                         &firstHalf,
-                         &secondHalf,
-                         entireImageRect.size.height / 2.0, CGRectEdge.MinYEdge)
+            self.text.draw(in: result.slice)
             
-            self.text.drawInRect(firstHalf)
-            attachmentImage?.drawInRect(secondHalf)
+            attachmentImage?.draw(in: result.remainder)
         } else {
             // Just render our text
-            self.text.drawInRect(entireImageRect)
+            self.text.draw(in: entireImageRect)
         }
         
         let bitmapRepresentation =
@@ -587,7 +614,8 @@ extension Document {
         
         // Convert it to a PNG
         return bitmapRepresentation?
-            .representationUsingType(.NSPNGFileType, properties: [:])
+            .representation(using: .PNG, properties: [:])
+        
         
     }
     // END document_icon_data

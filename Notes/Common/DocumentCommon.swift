@@ -16,7 +16,7 @@ import Foundation
 // BEGIN error_func
 let ErrorDomain = "NotesErrorDomain"
 
-func err(code: ErrorCode, _ userInfo:[NSObject:AnyObject]? = nil)  -> NSError {
+func err(_ code: ErrorCode, _ userInfo:[AnyHashable: Any]? = nil)  -> NSError {
     // Generate an NSError object, using ErrorDomain, and using whatever
     // value we were passed.
     return NSError(domain: ErrorDomain, code: code.rawValue, userInfo: userInfo)
@@ -57,22 +57,22 @@ let NotesHasPromptedForiCloudKey = "has_prompted_for_icloud"
 enum ErrorCode : Int {
     
     /// We couldn't find the document at all.
-    case CannotAccessDocument
+    case cannotAccessDocument
     
     /// We couldn't access any file wrappers inside this document.
-    case CannotLoadFileWrappers
+    case cannotLoadFileWrappers
     
     /// We couldn't load the Text.rtf file.
-    case CannotLoadText
+    case cannotLoadText
     
     /// We couldn't access the Attachments folder.
-    case CannotAccessAttachments
+    case cannotAccessAttachments
     
     /// We couldn't save the Text.rtf file.
-    case CannotSaveText
+    case cannotSaveText
     
     /// We couldn't save an attachment.
-    case CannotSaveAttachment
+    case cannotSaveAttachment
 }
 // END error_codes
 // END document_common

@@ -16,7 +16,7 @@ class AttachmentCell: NSCollectionViewItem {
     // END attachment_cell_mac_delegate
     
     // BEGIN attachment_cell_mousedown
-    override func mouseDown(theEvent: NSEvent) {
+    override func mouseDown(with theEvent: NSEvent) {
         if (theEvent.clickCount == 2) {
             delegate?.openSelectedAttachment(self)
         }

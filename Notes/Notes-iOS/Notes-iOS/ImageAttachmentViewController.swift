@@ -17,7 +17,7 @@ class ImageAttachmentViewController: UIViewController, AttachmentViewer {
     // END image_vc_outlet
     
     // BEGIN image_vc_attachmentviewer
-    var attachmentFile : NSFileWrapper?
+    var attachmentFile : FileWrapper?
     
     var document : Document?
     // END image_vc_attachmentviewer
@@ -60,7 +60,7 @@ class ImageAttachmentViewController: UIViewController, AttachmentViewer {
         
         let context = CIContext(options: nil)
         
-        for (number, filter) in filters.enumerate() {
+        for (number, filter) in filters.enumerated() {
             
             let button = filterButtons[number]
             
@@ -69,30 +69,30 @@ class ImageAttachmentViewController: UIViewController, AttachmentViewer {
             filter?.setValue(unprocessedImage, forKey: kCIInputImageKey)
             
             if let processedCIImage =
-                filter?.valueForKey(kCIOutputImageKey) as? CIImage{
+                filter?.value(forKey: kCIOutputImageKey) as? CIImage{
                     
                     // Render the result into a CGImage
                 let image = context.createCGImage(processedCIImage,
-                    fromRect: CGRect(origin: CGPoint.zero, size: image.size))
+                    from: CGRect(origin: CGPoint.zero, size: image.size))
                     
-                button.setImage(UIImage(CGImage: image),
-                                forState: UIControlState.Normal)
+                button.setImage(UIImage(cgImage: image!),
+                                for: UIControlState())
             }
         }
     }
     // END prepare_filter_previews
 
     // BEGIN show_filtered_image
-    @IBAction func showFilteredImage(sender: UIButton) {
+    @IBAction func showFilteredImage(_ sender: UIButton) {
         
-        self.imageView?.image = sender.imageForState(UIControlState.Normal)
-        self.imageView?.contentMode = .ScaleAspectFit
+        self.imageView?.image = sender.image(for: UIControlState())
+        self.imageView?.contentMode = .scaleAspectFit
         
     }
     // END show_filtered_image
     
     // BEGIN image_attachment_share_image
-    @IBAction func shareImage(sender: UIBarButtonItem) {
+    @IBAction func shareImage(_ sender: UIBarButtonItem) {
         
         // Ensure that we're actually showing an image
         guard let image = self.imageView?.image else {
@@ -104,15 +104,15 @@ class ImageAttachmentViewController: UIViewController, AttachmentViewer {
         
         // If we are being presented in a window that's a Regular width,
         // show it in a popover (rather than the default modal)
-        if UIApplication.sharedApplication().keyWindow?.traitCollection
-            .horizontalSizeClass == UIUserInterfaceSizeClass.Regular {
-            activityController.modalPresentationStyle = .Popover
+        if UIApplication.shared.keyWindow?.traitCollection
+            .horizontalSizeClass == UIUserInterfaceSizeClass.regular {
+            activityController.modalPresentationStyle = .popover
             
             activityController.popoverPresentationController?
                 .barButtonItem = sender
         }
         
-        self.presentViewController(activityController, animated: true,
+        self.present(activityController, animated: true,
             completion: nil)
         
     }

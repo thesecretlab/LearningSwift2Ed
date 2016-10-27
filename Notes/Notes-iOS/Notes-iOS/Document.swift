@@ -10,20 +10,49 @@ import UIKit
 
 // BEGIN import_mobilecoreservices
 import MobileCoreServices
+fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+  switch (lhs, rhs) {
+  case let (l?, r?):
+    return l < r
+  case (nil, _?):
+    return true
+  default:
+    return false
+  }
+}
+
+fileprivate func > <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+  switch (lhs, rhs) {
+  case let (l?, r?):
+    return l > r
+  default:
+    return rhs < lhs
+  }
+}
+
+fileprivate func >= <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+  switch (lhs, rhs) {
+  case let (l?, r?):
+    return l >= r
+  default:
+    return !(lhs < rhs)
+  }
+}
+
 // END import_mobilecoreservices
 
 // Type info and thumbnails
 
 // BEGIN filewrapper_extension
-extension NSFileWrapper {
+extension FileWrapper {
     
     // BEGIN conforms_to_type
     var fileExtension : String? {
         return self.preferredFilename?
-            .componentsSeparatedByString(".").last
+            .components(separatedBy: ".").last
     }
     
-    func conformsToType(type: CFString) -> Bool {
+    func conformsToType(_ type: CFString) -> Bool {
         
         // Get the extension of this file
         guard let fileExtension = fileExtension else {
@@ -33,7 +62,7 @@ extension NSFileWrapper {
         
         // Get the file type of the attachment based on its extension
         guard let fileType = UTTypeCreatePreferredIdentifierForTag(
-            kUTTagClassFilenameExtension, fileExtension, nil)?
+            kUTTagClassFilenameExtension, fileExtension as CFString, nil)?
             .takeRetainedValue() else {
             // If we can't figure out the file type from the extension,
             // it also doesn't conform
@@ -104,17 +133,17 @@ class Document: UIDocument {
     // BEGIN document_base
     var text = NSAttributedString(string: "") {
         didSet {
-            self.updateChangeCount(UIDocumentChangeKind.Done)
+            self.updateChangeCount(UIDocumentChangeKind.done)
         }
     }
     
-    var documentFileWrapper = NSFileWrapper(directoryWithFileWrappers: [:])
+    var documentFileWrapper = FileWrapper(directoryWithFileWrappers: [:])
     
     // BEGIN document_contents_for_type
-    override func contentsForType(typeName: String) throws -> AnyObject {
+    override func contents(forType typeName: String) throws -> Any {
         
-        let textRTFData = try self.text.dataFromRange(
-            NSRange(0..<self.text.length),
+        let textRTFData = try self.text.data(
+            from: NSRange(0..<self.text.length),
             documentAttributes:
                 [NSDocumentTypeDocumentAttribute: NSRTFTextDocumentType])
         
@@ -130,13 +159,13 @@ class Document: UIDocument {
             self.iconImageDataWithSize(CGSize(width: 512, height: 512))!
         
         let thumbnailWrapper =
-            NSFileWrapper(regularFileWithContents: thumbnailImageData)
+            FileWrapper(regularFileWithContents: thumbnailImageData)
         
         let quicklookPreview =
-            NSFileWrapper(regularFileWithContents: textRTFData)
+            FileWrapper(regularFileWithContents: textRTFData)
         
         let quickLookFolderFileWrapper =
-            NSFileWrapper(directoryWithFileWrappers: [
+            FileWrapper(directoryWithFileWrappers: [
             NoteDocumentFileNames.QuickLookTextFile.rawValue: quicklookPreview,
             NoteDocumentFileNames.QuickLookThumbnail.rawValue: thumbnailWrapper
             ])
@@ -153,19 +182,19 @@ class Document: UIDocument {
         self.documentFileWrapper.addFileWrapper(quickLookFolderFileWrapper)
         // END document_base_quicklook
         
-        self.documentFileWrapper.addRegularFileWithContents(textRTFData,
+        self.documentFileWrapper.addRegularFile(withContents: textRTFData,
             preferredFilename: NoteDocumentFileNames.TextFile.rawValue)
         
         return self.documentFileWrapper
     }
     // END document_contents_for_type
 
-    override func loadFromContents(contents: AnyObject,
+    override func load(fromContents contents: Any,
         ofType typeName: String?) throws {
         
         // Ensure that we've been given a file wrapper
-        guard let fileWrapper = contents as? NSFileWrapper else {
-            throw err(.CannotLoadFileWrappers)
+        guard let fileWrapper = contents as? FileWrapper else {
+            throw err(.cannotLoadFileWrappers)
         }
         
         // Ensure that this file wrapper contains the text file,
@@ -173,7 +202,7 @@ class Document: UIDocument {
         guard let textFileWrapper = fileWrapper
             .fileWrappers?[NoteDocumentFileNames.TextFile.rawValue],
             let textFileData = textFileWrapper.regularFileContents else {
-            throw err(.CannotLoadText)
+            throw err(.cannotLoadText)
         }
         
         // Read in the RTF
@@ -188,7 +217,7 @@ class Document: UIDocument {
     // END document_base
     
     // BEGIN document_attachment_dir
-    private var attachmentsDirectoryWrapper : NSFileWrapper? {
+    fileprivate var attachmentsDirectoryWrapper : FileWrapper? {
         
         // Ensure that we can actually work with this document
         guard let fileWrappers = self.documentFileWrapper.fileWrappers else {
@@ -205,7 +234,7 @@ class Document: UIDocument {
             
             // Create it
             attachmentsDirectoryWrapper =
-                NSFileWrapper(directoryWithFileWrappers: [:])
+                FileWrapper(directoryWithFileWrappers: [:])
             attachmentsDirectoryWrapper?.preferredFilename =
                 NoteDocumentFileNames.AttachmentsDirectory.rawValue
             
@@ -213,7 +242,7 @@ class Document: UIDocument {
             self.documentFileWrapper.addFileWrapper(attachmentsDirectoryWrapper!)
             
             // We made a change to the file, so record that
-            self.updateChangeCount(UIDocumentChangeKind.Done)
+            self.updateChangeCount(UIDocumentChangeKind.done)
         }
         
         // Either way, return it
@@ -223,7 +252,7 @@ class Document: UIDocument {
     
     // Attachments
     // BEGIN document_attachments
-    dynamic var attachedFiles : [NSFileWrapper]? {
+    dynamic var attachedFiles : [FileWrapper]? {
         
         // Get the contents of the attachments directory directory
         guard let attachmentsFileWrappers =
@@ -241,22 +270,22 @@ class Document: UIDocument {
     // END document_attachments
 
     // BEGIN document_add_attachments
-    func addAttachmentAtURL(url:NSURL) throws -> NSFileWrapper {
+    @discardableResult func addAttachmentAtURL(_ url:URL) throws -> FileWrapper {
     
         // Ensure that we have a place to put attachments
         guard attachmentsDirectoryWrapper != nil else {
-            throw err(.CannotAccessAttachments)
+            throw err(.cannotAccessAttachments)
         }
         
         // Create the new attachment with this file, or throw an error
-        let newAttachment = try NSFileWrapper(URL: url,
-            options: NSFileWrapperReadingOptions.Immediate)
+        let newAttachment = try FileWrapper(url: url,
+            options: FileWrapper.ReadingOptions.immediate)
         
         // Add it to the attachments directory
         attachmentsDirectoryWrapper?.addFileWrapper(newAttachment)
         
         // Mark ourselves as needing to save
-        self.updateChangeCount(UIDocumentChangeKind.Done)
+        self.updateChangeCount(UIDocumentChangeKind.done)
         
         return newAttachment
     }
@@ -268,12 +297,12 @@ class Document: UIDocument {
     // It might be nil if 1. this isn't one of our attachments or
     // 2. we failed to save, in which case the attachment may not exist
     // on disk
-    func URLForAttachment(attachment: NSFileWrapper,
-         completion: NSURL? -> Void) {
+    func URLForAttachment(_ attachment: FileWrapper,
+         completion: @escaping (URL?) -> Void) {
         
         // Ensure that this is an attachment we have
         guard let attachments = self.attachedFiles
-                where attachments.contains(attachment) else {
+                , attachments.contains(attachment) else {
             completion(nil)
             return
         }
@@ -284,15 +313,15 @@ class Document: UIDocument {
             return
         }
         
-        self.autosaveWithCompletionHandler { (success) -> Void in
+        self.autosave { (success) -> Void in
             if success {
                 
                 // We're now certain that attachments actually
                 // exist on disk, so we can get their URL
                 let attachmentURL = self.fileURL
-                    .URLByAppendingPathComponent(
+                    .appendingPathComponent(
                         NoteDocumentFileNames.AttachmentsDirectory.rawValue,
-                        isDirectory: true).URLByAppendingPathComponent(fileName)
+                        isDirectory: true).appendingPathComponent(fileName)
                 
                 completion(attachmentURL)
                 
@@ -308,34 +337,34 @@ class Document: UIDocument {
     
     
     // BEGIN document_add_attachment_with_data
-    func addAttachmentWithData(data: NSData, name: String) throws {
+    func addAttachmentWithData(_ data: Data, name: String) throws {
         
         guard attachmentsDirectoryWrapper != nil else {
-            throw err(.CannotAccessAttachments)
+            throw err(.cannotAccessAttachments)
         }
         
-        let newAttachment = NSFileWrapper(regularFileWithContents: data)
+        let newAttachment = FileWrapper(regularFileWithContents: data)
         
         newAttachment.preferredFilename = name
         
         attachmentsDirectoryWrapper?.addFileWrapper(newAttachment)
         
-        self.updateChangeCount(.Done)
+        self.updateChangeCount(.done)
         
     }
     // END document_add_attachment_with_data
     
     // BEGIN delete_attachment
-    func deleteAttachment(attachment:NSFileWrapper) throws {
+    func deleteAttachment(_ attachment:FileWrapper) throws {
         
         guard attachmentsDirectoryWrapper != nil else {
-            throw err(.CannotAccessAttachments)
+            throw err(.cannotAccessAttachments)
         }
         
         
         attachmentsDirectoryWrapper?.removeFileWrapper(attachment)
         
-        self.updateChangeCount(.Done)
+        self.updateChangeCount(.done)
         
     }
     // END delete_attachment
@@ -345,7 +374,7 @@ class Document: UIDocument {
     var localNotification: UILocalNotification? {
         
         get {
-            if let allNotifications = UIApplication.sharedApplication()
+            if let allNotifications = UIApplication.shared
                 .scheduledLocalNotifications {
                 
                 return allNotifications.filter({
@@ -353,7 +382,7 @@ class Document: UIDocument {
                     
                     
                     // If it has an "owner", and will appear in the future..
-                    if let owner = item.userInfo?["owner"] as? String where
+                    if let owner = item.userInfo?["owner"] as? String ,
                         item.fireDate?.timeIntervalSinceNow > 0
                         {
                             // Then it is ours if the owner equals our own URL
@@ -371,7 +400,7 @@ class Document: UIDocument {
         
         set {
             if let currentNotification = self.localNotification {
-                UIApplication.sharedApplication()
+                UIApplication.shared
                     .cancelLocalNotification(currentNotification)
             }
             
@@ -380,7 +409,7 @@ class Document: UIDocument {
                 userInfo["owner"] = self.fileURL.absoluteString
                 theNotification.userInfo = userInfo
                 
-                UIApplication.sharedApplication()
+                UIApplication.shared
                     .scheduleLocalNotification(theNotification)
             }
         }
@@ -388,7 +417,7 @@ class Document: UIDocument {
     // END notification_property
     
     // BEGIN ios_thumbnail_icon
-    func iconImageDataWithSize(size: CGSize) -> NSData? {
+    func iconImageDataWithSize(_ size: CGSize) -> Data? {
         UIGraphicsBeginImageContext(size)
         defer {
             UIGraphicsEndImageContext()
@@ -398,28 +427,24 @@ class Document: UIDocument {
         
         // Fill the background with white
         let backgroundRect = UIBezierPath(rect: entireImageRect)
-        UIColor.whiteColor().setFill()
+        UIColor.white.setFill()
         backgroundRect.fill()
         
         if self.attachedFiles?.count >= 1 {
             // Render our text, and the first attachment
             let attachmentImage = self.attachedFiles?[0].thumbnailImage()
             
-            var firstHalf : CGRect = CGRectZero
-            var secondHalf : CGRect = CGRectZero
+            let result = entireImageRect.divided(atDistance: entireImageRect.size.height / 2.0, from: CGRectEdge.minYEdge)
             
-            CGRectDivide(entireImageRect, &firstHalf, &secondHalf,
-                entireImageRect.size.height / 2.0, CGRectEdge.MinYEdge)
-            
-            self.text.drawInRect(firstHalf)
-            attachmentImage?.drawInRect(secondHalf)
+            self.text.draw(in: result.slice)
+            attachmentImage?.draw(in: result.remainder)
         } else {
             // Just render our text
-            self.text.drawInRect(entireImageRect)
+            self.text.draw(in: entireImageRect)
         }
         
         let image = UIGraphicsGetImageFromCurrentImageContext()
-        return UIImagePNGRepresentation(image)
+        return UIImagePNGRepresentation(image!)
     }
     // END ios_thumbnail_icon
     

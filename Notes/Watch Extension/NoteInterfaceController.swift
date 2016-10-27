@@ -13,12 +13,12 @@ class NoteInterfaceController: WKInterfaceController {
     @IBOutlet var noteContentLabel: WKInterfaceLabel!
     
     // BEGIN watch_note_awake_with_context
-    override func awakeWithContext(context: AnyObject?) {
+    override func awake(withContext context: Any?) {
         
         // We've hopefully received an NSURL that points at a 
         // note on the iPhone we want to display!
         
-        if let url = context as? NSURL {
+        if let url = context as? URL {
             
             // First, clear the label - it might take a moment for
             // the text to appear.
@@ -43,14 +43,14 @@ class NoteInterfaceController: WKInterfaceController {
                     // that closes this screen when tapped.
                     
                     let closeAction = WKAlertAction(title: "Close",
-                        style: WKAlertActionStyle.Default,
+                        style: WKAlertActionStyle.default,
                         handler: { () -> Void in
-                            self.popController()
+                            self.pop()
                         })
                     
-                    self.presentAlertControllerWithTitle("Error loading note",
+                    self.presentAlert(withTitle: "Error loading note",
                         message: theError.localizedDescription,
-                        preferredStyle: WKAlertControllerStyle.Alert,
+                        preferredStyle: WKAlertControllerStyle.alert,
                         actions: [closeAction])
                     
                     return

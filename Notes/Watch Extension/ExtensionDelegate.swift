@@ -14,10 +14,19 @@ import WatchConnectivity
 // BEGIN watch_session_manager
 class SessionManager : NSObject, WCSessionDelegate {
     
+    
+    @available(watchOSApplicationExtension 2.2, *)
+    func session(_ session: WCSession,
+                 activationDidCompleteWith activationState: WCSessionActivationState,
+                 error: Error?) {
+        // Session activated.
+    }
+
+    
     // BEGIN watch_session_manager_noteinfo
     struct NoteInfo {
         var name : String
-        var URL : NSURL?
+        var URL : Foundation.URL?
         
         init(dictionary:[String:AnyObject]) {
             
@@ -28,7 +37,7 @@ class SessionManager : NSObject, WCSessionDelegate {
             self.name = name
             
             if let URLString = dictionary[WatchMessageContentURLKey] as? String {
-                self.URL = NSURL(string: URLString)
+                self.URL = Foundation.URL(string: URLString)
             }
             
         }
@@ -45,18 +54,18 @@ class SessionManager : NSObject, WCSessionDelegate {
     // END watch_session_manager_singleton
     
     // BEGIN watch_session_manager_singleton_init
-    var session : WCSession { return WCSession.defaultSession() }
+    var session : WCSession { return WCSession.default() }
     
     override init() {
         super.init()
         session.delegate = self
-        session.activateSession()
+        session.activate()
     }
     // END watch_session_manager_singleton_init
     
     // BEGIN watch_session_manager_create_note
-    func createNote(text:String,
-         completionHandler: ([NoteInfo], NSError?)->Void) {
+    func createNote(_ text:String,
+         completionHandler: @escaping ([NoteInfo], Error?)->Void) {
         
         let message = [
             WatchMessageTypeKey : WatchMessageTypeCreateNoteKey,
@@ -79,7 +88,7 @@ class SessionManager : NSObject, WCSessionDelegate {
     // END watch_session_manager_create_note
     
     // BEGIN watch_session_manager_update_local_note_list
-    func updateLocalNoteListWithReply(reply:[String:AnyObject]) {
+    func updateLocalNoteListWithReply(_ reply:[String:Any]) {
         
         if let noteList = reply[WatchMessageContentListKey]
             as? [[String:AnyObject]] {
@@ -95,7 +104,7 @@ class SessionManager : NSObject, WCSessionDelegate {
     // END watch_session_manager_update_local_note_list
     
     // BEGIN watch_session_manager_update_list
-    func updateList(completionHandler: ([NoteInfo], NSError?)->Void) {
+    func updateList(_ completionHandler: @escaping ([NoteInfo], NSError?)->Void) {
         
         let message = [
             WatchMessageTypeKey : WatchMessageTypeListAllNotesKey
@@ -104,20 +113,20 @@ class SessionManager : NSObject, WCSessionDelegate {
         session.sendMessage(message, replyHandler: {
             reply in
             
-            self.updateLocalNoteListWithReply(reply)
+            self.updateLocalNoteListWithReply(reply as [String : AnyObject])
             
             completionHandler(self.notes, nil)
             
         }, errorHandler: { error in
             print("Error!")
-            completionHandler([], error)
+            completionHandler([], error as NSError?)
                 
         })
     }
     // END watch_session_manager_update_list
     
     // BEGIN watch_session_manager_load_note
-    func loadNote(noteURL: NSURL, completionHandler: (String?, NSError?) -> Void) {
+    func loadNote(_ noteURL: URL, completionHandler: @escaping (String?, Error?) -> Void) {
         
         let message = [
             WatchMessageTypeKey: WatchMessageTypeLoadNoteKey,

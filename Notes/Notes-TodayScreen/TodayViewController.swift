@@ -16,31 +16,31 @@ class TodayViewController: UIViewController, NCWidgetProviding,
 {
     
     // BEGIN ext_file_list
-    var fileList : [NSURL] = []
+    var fileList : [URL] = []
     // END ext_file_list
     
     // BEGIN ext_load_available_files
-    func loadAvailableFiles() -> [NSURL] {
+    func loadAvailableFiles() -> [URL] {
         
-        let fileManager = NSFileManager.defaultManager()
+        let fileManager = FileManager.default
         
-        var allFiles : [NSURL] = []
+        var allFiles : [URL] = []
         
         // Get the list of all local files
         if let localDocumentsFolder
-            = fileManager.URLsForDirectory(.DocumentDirectory,
-                inDomains: .UserDomainMask).first {
+            = fileManager.urls(for: .documentDirectory,
+                in: .userDomainMask).first {
                     do {
                         
                         let localFiles = try fileManager
-                            .contentsOfDirectoryAtPath(localDocumentsFolder.path!)
+                            .contentsOfDirectory(atPath: localDocumentsFolder.path)
                             .map({
                                 localDocumentsFolder
-                                    .URLByAppendingPathComponent($0,
+                                    .appendingPathComponent($0,
                                         isDirectory: false)
                             })
                         
-                        allFiles.appendContentsOf(localFiles)
+                        allFiles.append(contentsOf: localFiles)
                     } catch {
                         NSLog("Failed to get list of local files!")
                     }
@@ -48,19 +48,19 @@ class TodayViewController: UIViewController, NCWidgetProviding,
         
         // Get the list of documents in iCloud
         if let documentsFolder = fileManager
-            .URLForUbiquityContainerIdentifier(nil)?
-            .URLByAppendingPathComponent("Documents", isDirectory: true) {
+            .url(forUbiquityContainerIdentifier: nil)?
+            .appendingPathComponent("Documents", isDirectory: true) {
                 do {
                     
                     // Get the list of files
                     let iCloudFiles = try fileManager
-                        .contentsOfDirectoryAtPath(documentsFolder.path!)
+                        .contentsOfDirectory(atPath: documentsFolder.path)
                         .map({
-                            documentsFolder.URLByAppendingPathComponent($0,
+                            documentsFolder.appendingPathComponent($0,
                                 isDirectory: false)
                         })
                     
-                    allFiles.appendContentsOf(iCloudFiles)
+                    allFiles.append(contentsOf: iCloudFiles)
                     
                     
                 } catch  {
@@ -75,7 +75,7 @@ class TodayViewController: UIViewController, NCWidgetProviding,
         // and return NSURLs of these
         
         return allFiles
-            .filter({ $0.lastPathComponent?.hasSuffix(".note") ?? false})
+            .filter({ $0.lastPathComponent.hasSuffix(".note") })
     }
     // END ext_load_available_files
     
@@ -89,8 +89,8 @@ class TodayViewController: UIViewController, NCWidgetProviding,
         // so default to a very small size
         self.preferredContentSize = CGSize(width: 0, height: 1)
         
-        let containerURL = NSFileManager.defaultManager()
-            .URLForUbiquityContainerIdentifier(nil)
+        let containerURL = FileManager.default
+            .url(forUbiquityContainerIdentifier: nil)
         
         NSLog("Extension's container: \(containerURL)")
     }
@@ -99,8 +99,8 @@ class TodayViewController: UIViewController, NCWidgetProviding,
     @IBOutlet weak var tableView: UITableView!
     
     // BEGIN ext_update
-    func widgetPerformUpdateWithCompletionHandler(completionHandler:
-        ((NCUpdateResult) -> Void)) {
+    func widgetPerformUpdate(completionHandler:
+        (@escaping (NCUpdateResult) -> Void)) {
         // Perform any setup necessary in order to update the view.
 
         // If an error is encountered, use NCUpdateResult.Failed
@@ -112,32 +112,32 @@ class TodayViewController: UIViewController, NCWidgetProviding,
         self.preferredContentSize = self.tableView.contentSize
         
         if newFileList == fileList {
-            completionHandler(.NoData)
+            completionHandler(.noData)
         } else {
             fileList = newFileList
             
-            completionHandler(.NewData)
+            completionHandler(.newData)
         }
     }
     // END ext_update
     
     // BEGIN ext_tableview_datasource
-    func tableView(tableView: UITableView,
+    func tableView(_ tableView: UITableView,
          numberOfRowsInSection section: Int) -> Int {
         
         return fileList.count
     }
     
-    func tableView(tableView: UITableView,
-         cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+    func tableView(_ tableView: UITableView,
+         cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         let cell = tableView
-            .dequeueReusableCellWithIdentifier("Cell", forIndexPath: indexPath)
+            .dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
         
-        let url = fileList[indexPath.row]
+        let url = fileList[(indexPath as NSIndexPath).row]
         
         var fileName : AnyObject?
-        _ = try? url.getResourceValue(&fileName, forKey: NSURLNameKey)
+        _ = try? (url as NSURL).getResourceValue(&fileName, forKey: URLResourceKey.nameKey)
         let name = fileName as? String ?? "Note"
         
         cell.textLabel?.text = name
@@ -147,24 +147,20 @@ class TodayViewController: UIViewController, NCWidgetProviding,
     // END ext_tableview_datasource
     
     // BEGIN ext_open_document
-    func tableView(tableView: UITableView,
-         didSelectRowAtIndexPath indexPath: NSIndexPath) {
+    func tableView(_ tableView: UITableView,
+         didSelectRowAt indexPath: IndexPath) {
         
-        tableView.deselectRowAtIndexPath(indexPath, animated: true)
+        tableView.deselectRow(at: indexPath, animated: true)
         
-        let url = fileList[indexPath.row]
+        let url = fileList[(indexPath as NSIndexPath).row]
         
-        guard let path = url.path else {
-            return
-        }
-        
-        let appURLComponents = NSURLComponents()
+        var appURLComponents = URLComponents()
         appURLComponents.scheme = "notes"
         appURLComponents.host = nil
-        appURLComponents.path = path
+        appURLComponents.path = url.path
         
-        if let appURL = appURLComponents.URL {
-            self.extensionContext?.openURL(appURL, completionHandler: nil)
+        if let appURL = appURLComponents.url {
+            self.extensionContext?.open(appURL, completionHandler: nil)
         }
     }
     // END ext_open_document

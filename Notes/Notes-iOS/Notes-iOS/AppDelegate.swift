@@ -19,11 +19,26 @@ let NotesApplicationDidRegisterUserNotificationSettings
 
 // BEGIN ios_watch_wcsessiondelegate
 extension AppDelegate : WCSessionDelegate {
+    @available(iOS 9.3, *)
+    public func sessionDidDeactivate(_ session: WCSession) {
+        
+    }
+    
+    @available(iOS 9.3, *)
+    public func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
+        
+    }
+    
+    @available(iOS 9.3, *)
+    public func sessionDidBecomeInactive(_ session: WCSession) {
+        
+    }
+    
     
     // BEGIN ios_watch_wcsessiondelegate_didrececivemessage
-    func session(session: WCSession,
-        didReceiveMessage message: [String : AnyObject],
-        replyHandler: ([String : AnyObject]) -> Void) {
+    func session(_ session: WCSession,
+        didReceiveMessage message: [String : Any],
+        replyHandler: @escaping ([String : Any]) -> Void) {
         
         if let messageName = message[WatchMessageTypeKey] as? String {
             
@@ -32,7 +47,7 @@ extension AppDelegate : WCSessionDelegate {
                 handleListAllNotes(replyHandler)
             case WatchMessageTypeLoadNoteKey:
                 if let urlString = message[WatchMessageContentURLKey] as? String,
-                    let url = NSURL(string: urlString) {
+                    let url = URL(string: urlString) {
                     handleLoadNote(url, replyHandler: replyHandler)
                 } else {
                     // If there's no URL, then fall through to the default case
@@ -58,27 +73,26 @@ extension AppDelegate : WCSessionDelegate {
     // END ios_watch_wcsessiondelegate_didrececivemessage
     
     // BEGIN ios_watch_wcsessiondelegate_handlecreatenote
-    func handleCreateNote(text: String,
-         replyHandler: ([String:AnyObject]) -> Void) {
+    func handleCreateNote(_ text: String,
+         replyHandler: @escaping ([String:Any]) -> Void) {
         
         let documentName = "Document \(arc4random()) from Watch.note"
         
         // Determine where the file should be saved locally 
         // (before moving to iCloud)
-        guard let documentsFolder = NSFileManager.defaultManager()
-            .URLsForDirectory(.DocumentDirectory,
-            inDomains: .UserDomainMask).first else {
+        guard let documentsFolder = FileManager.default
+            .urls(for: .documentDirectory,
+            in: .userDomainMask).first else {
                 self.handleListAllNotes(replyHandler)
                 return
         }
         
         let documentDestinationURL = documentsFolder
-            .URLByAppendingPathComponent(documentName)
+            .appendingPathComponent(documentName)
         
         
-        guard let ubiquitousDocumentsDirectoryURL = NSFileManager
-            .defaultManager().URLForUbiquityContainerIdentifier(nil)?
-            .URLByAppendingPathComponent("Documents") else {
+        guard let ubiquitousDocumentsDirectoryURL = FileManager.default.url(forUbiquityContainerIdentifier: nil)?
+            .appendingPathComponent("Documents") else {
                 self.handleListAllNotes(replyHandler)
                 return
         }
@@ -88,8 +102,8 @@ extension AppDelegate : WCSessionDelegate {
         newDocument.text = NSAttributedString(string: text)
         
         // Try to save it locally
-        newDocument.saveToURL(documentDestinationURL,
-            forSaveOperation: .ForCreating) { (success) -> Void in
+        newDocument.save(to: documentDestinationURL,
+            for: .forCreating) { (success) -> Void in
                 
                 // Did the save succeed? If not, just reply with the 
                 // list of notes.
@@ -102,14 +116,14 @@ extension AppDelegate : WCSessionDelegate {
                 
                 // Move it to iCloud
                 let ubiquitousDestinationURL = ubiquitousDocumentsDirectoryURL
-                    .URLByAppendingPathComponent(documentName)
+                    .appendingPathComponent(documentName)
                 
                 // Perform the move to iCloud in the background
-                NSOperationQueue().addOperationWithBlock { () -> Void in
+                OperationQueue().addOperation { () -> Void in
                     do {
-                        try NSFileManager.defaultManager()
+                        try FileManager.default
                             .setUbiquitous(true,
-                                itemAtURL: documentDestinationURL,
+                                itemAt: documentDestinationURL,
                                 destinationURL: ubiquitousDestinationURL)
                         
                         
@@ -118,8 +132,8 @@ extension AppDelegate : WCSessionDelegate {
                             "\(error.localizedDescription)")
                     }
                     
-                    NSOperationQueue.mainQueue()
-                        .addOperationWithBlock { () -> Void in
+                    OperationQueue.main
+                        .addOperation { () -> Void in
                         // Pass back the list of everything currently in iCloud
                         self.handleListAllNotes(replyHandler)
                     }
@@ -130,48 +144,48 @@ extension AppDelegate : WCSessionDelegate {
     // END ios_watch_wcsessiondelegate_handlecreatenote
 
     // BEGIN ios_watch_wcsessiondelegate_handlelistallnotes
-    func handleListAllNotes(replyHandler: ([String:AnyObject]) -> Void) {
+    func handleListAllNotes(_ replyHandler: ([String:Any]) -> Void) {
         
-        let fileManager = NSFileManager.defaultManager()
+        let fileManager = FileManager.default
         
-        var allFiles : [NSURL] = []
+        var allFiles : [URL] = []
         
         do {
             
             // Add the list of cloud documents
             if let documentsFolder = fileManager
-                .URLForUbiquityContainerIdentifier(nil)?
-                .URLByAppendingPathComponent("Documents", isDirectory: true)  {
+                .url(forUbiquityContainerIdentifier: nil)?
+                .appendingPathComponent("Documents", isDirectory: true)  {
                 let cloudFiles = try fileManager
-                    .contentsOfDirectoryAtPath(documentsFolder.path!)
+                    .contentsOfDirectory(atPath: documentsFolder.path)
                     .map({
-                        documentsFolder.URLByAppendingPathComponent($0,
+                        documentsFolder.appendingPathComponent($0,
                             isDirectory: false)
                     })
-                allFiles.appendContentsOf(cloudFiles)
+                allFiles.append(contentsOf: cloudFiles)
             }
             
             // Add the list of all local documents
             
             if let localDocumentsFolder
-                = fileManager.URLsForDirectory(.DocumentDirectory,
-                    inDomains: .UserDomainMask).first {
+                = fileManager.urls(for: .documentDirectory,
+                    in: .userDomainMask).first {
                 
                 let localFiles =
                     try fileManager
-                    .contentsOfDirectoryAtPath(localDocumentsFolder.path!)
+                    .contentsOfDirectory(atPath: localDocumentsFolder.path)
                     .map({
-                        localDocumentsFolder.URLByAppendingPathComponent($0,
+                        localDocumentsFolder.appendingPathComponent($0,
                             isDirectory: false)
                     })
-                allFiles.appendContentsOf(localFiles)
+                allFiles.append(contentsOf: localFiles)
             }
             
             // Filter these to only those that end in ".note",
             
             let noteFiles = allFiles
                 .filter({
-                    $0.lastPathComponent?.hasSuffix(".note") ?? false
+                    $0.lastPathComponent.hasSuffix(".note")
                 })
             
             // Convert this list into an array of dictionaries, each 
@@ -179,7 +193,7 @@ extension AppDelegate : WCSessionDelegate {
             let results = noteFiles.map({ url in
                 
                 [
-                    WatchMessageContentNameKey: url.lastPathComponent ?? "Note",
+                    WatchMessageContentNameKey: url.lastPathComponent,
                     WatchMessageContentURLKey: url.absoluteString
                 ]
                 
@@ -190,7 +204,7 @@ extension AppDelegate : WCSessionDelegate {
                 WatchMessageContentListKey: results
             ]
             
-            replyHandler(reply)
+            replyHandler(reply as [String : AnyObject])
             
         } catch let error as NSError {
             // Log an error and return the empty array
@@ -202,10 +216,10 @@ extension AppDelegate : WCSessionDelegate {
     // END ios_watch_wcsessiondelegate_handlelistallnotes
     
     // BEGIN ios_watch_wcsessiondelegate_handleloadnote
-    func handleLoadNote(url: NSURL,
-        replyHandler: ([String:AnyObject]) -> Void) {
+    func handleLoadNote(_ url: URL,
+        replyHandler: @escaping ([String:Any]) -> Void) {
         let document = Document(fileURL:url)
-        document.openWithCompletionHandler { success in
+        document.open { success in
             
             // Ensure that we successfully opened the document
             guard success == true else {
@@ -221,9 +235,9 @@ extension AppDelegate : WCSessionDelegate {
             // Close; don't provide a completion handler, because
             // we've not making changes and therefore don't care
             // if a save succeeds or not
-            document.closeWithCompletionHandler(nil)
+            document.close(completionHandler: nil)
             
-            replyHandler(reply)
+            replyHandler(reply as [String : AnyObject])
         }
         
     }
@@ -237,31 +251,31 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
     
     
-    func application(application: UIApplication,
-         didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?)
+    func application(_ application: UIApplication,
+         didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?)
         -> Bool {
         
         // BEGIN access_to_icloud
         // Ensure we've got access to iCloud
-        let backgroundQueue = NSOperationQueue()
-        backgroundQueue.addOperationWithBlock() {
+        let backgroundQueue = OperationQueue()
+        backgroundQueue.addOperation() {
             // Pass 'nil' to this method to get the URL for the first
             // iCloud container listed in the app's entitlements
-            let ubiquityContainerURL = NSFileManager.defaultManager()
-                .URLForUbiquityContainerIdentifier(nil)
+            let ubiquityContainerURL = FileManager.default
+                .url(forUbiquityContainerIdentifier: nil)
             print("Ubiquity container URL: \(ubiquityContainerURL)")
         }
         // END access_to_icloud
         
         // BEGIN ios_watch_did_finish_launching
-        WCSession.defaultSession().delegate = self
-        WCSession.defaultSession().activateSession()
+        WCSession.default().delegate = self
+        WCSession.default().activate()
         // END ios_watch_did_finish_launching
         
         return true
     }
     
-    func applicationWillResignActive(application: UIApplication) {
+    func applicationWillResignActive(_ application: UIApplication) {
         // Sent when the application is about to move from active to inactive 
         // state. This can occur for certain types of temporary interruptions 
         // (such as an incoming phone call or SMS message) or when the user 
@@ -272,7 +286,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // game.
     }
     
-    func applicationDidEnterBackground(application: UIApplication) {
+    func applicationDidEnterBackground(_ application: UIApplication) {
         // Use this method to release shared resources, save user data, 
         // invalidate timers, and store enough application state information to 
         // restore your application to its current state in case it is terminated 
@@ -281,37 +295,37 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // called instead of applicationWillTerminate: when the user quits.
     }
     
-    func applicationWillEnterForeground(application: UIApplication) {
+    func applicationWillEnterForeground(_ application: UIApplication) {
         // Called as part of the transition from the background to the inactive 
         // state; here you can undo many of the changes made on entering the
         // background.
     }
     
-    func applicationDidBecomeActive(application: UIApplication) {
+    func applicationDidBecomeActive(_ application: UIApplication) {
         // Restart any tasks that were paused (or not yet started) while the 
         // application was inactive. If the application was previously in the 
         // background, optionally refresh the user interface.
     }
     
-    func applicationWillTerminate(application: UIApplication) {
+    func applicationWillTerminate(_ application: UIApplication) {
         // Called when the application is about to terminate. Save data if 
         // appropriate. See also applicationDidEnterBackground:.
     }
     
     // BEGIN open_url
-    func application(app: UIApplication, openURL url: NSURL,
-         options: [String : AnyObject]) -> Bool {
+    func application(_ app: UIApplication, open url: URL,
+         options: [UIApplicationOpenURLOptionsKey : Any]) -> Bool {
         
-        if url.scheme == "notes", let path = url.path {
+        if url.scheme == "notes" {
             
             // Return to the list of documents
             if let navigationController =
                 self.window?.rootViewController as? UINavigationController {
                 
-                navigationController.popToRootViewControllerAnimated(false)
+                navigationController.popToRootViewController(animated: false)
                 
                  (navigationController.topViewController
-                    as? DocumentListViewController)?.openDocumentWithPath(path)
+                    as? DocumentListViewController)?.openDocumentWithPath(url.path)
             }
             
             return true
@@ -323,8 +337,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     // END open_url
     
     // BEGIN local_notification_received
-    func application(application: UIApplication,
-         didReceiveLocalNotification notification: UILocalNotification) {
+    func application(_ application: UIApplication,
+         didReceive notification: UILocalNotification) {
         
         // Extract the document and open it
         if notification.category == Document.alertCategory,
@@ -332,8 +346,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             let navigationController =
                 self.window?.rootViewController as? UINavigationController
             {
-            if let path = NSURL(string: url)?.path {
-                navigationController.popToRootViewControllerAnimated(false)
+            if let path = URL(string: url)?.path {
+                navigationController.popToRootViewController(animated: false)
                 
                 (navigationController.topViewController as?
                     DocumentListViewController)?.openDocumentWithPath(path)
@@ -342,14 +356,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
     }
     
-    func application(application: UIApplication,
+    func application(_ application: UIApplication,
          handleActionWithIdentifier identifier: String?,
-            forLocalNotification notification: UILocalNotification,
-                                 completionHandler: () -> Void) {
+            for notification: UILocalNotification,
+                                 completionHandler: @escaping () -> Void) {
         
         if identifier == Document.alertSnoozeAction {
             // Reschedule the notification
-            notification.fireDate = NSDate(timeIntervalSinceNow: 5)
+            notification.fireDate = Date(timeIntervalSinceNow: 5)
             application.scheduleLocalNotification(notification)
         }
         
@@ -361,15 +375,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     
     // BEGIN application_continue_activity
-    func application(application: UIApplication,
-        continueUserActivity userActivity: NSUserActivity,
-        restorationHandler: ([AnyObject]?) -> Void) -> Bool {
+    func application(_ application: UIApplication,
+        continue userActivity: NSUserActivity,
+        restorationHandler: @escaping ([Any]?) -> Void) -> Bool {
         
         // Return to the list of documents
         if let navigationController =
             self.window?.rootViewController as? UINavigationController {
             
-            navigationController.popToRootViewControllerAnimated(false)
+            navigationController.popToRootViewController(animated: false)
             
             // We're now at the list of documents; tell the restoration 
             // system that this view controller needs to be informed
@@ -385,12 +399,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     // END application_continue_activity
     
     // BEGIN application_did_register
-    func application(application: UIApplication,
-         didRegisterUserNotificationSettings notificationSettings:
+    func application(_ application: UIApplication,
+         didRegister notificationSettings:
             UIUserNotificationSettings) {
         
-        NSNotificationCenter.defaultCenter().postNotificationName(
-                NotesApplicationDidRegisterUserNotificationSettings,
+        NotificationCenter.default.post(
+                name: Notification.Name(rawValue: NotesApplicationDidRegisterUserNotificationSettings),
                 object: self)
     }
     // END application_did_register

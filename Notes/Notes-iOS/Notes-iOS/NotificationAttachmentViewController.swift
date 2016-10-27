@@ -12,7 +12,7 @@ import UIKit
 class NotificationAttachmentViewController: UIViewController, AttachmentViewer {
     
     var document : Document?
-    var attachmentFile : NSFileWrapper?
+    var attachmentFile : FileWrapper?
 // END notification_vc_attachment_protocol
     
     @IBOutlet var datePicker : UIDatePicker!
@@ -25,53 +25,52 @@ class NotificationAttachmentViewController: UIViewController, AttachmentViewer {
     
     
     /// BEGIN notification_view_will_appear
-    override func viewWillAppear(animated:Bool) {
+    override func viewWillAppear(_ animated:Bool) {
         
         if let notification = self.document?.localNotification {
-            let cancelButton = UIBarButtonItem(barButtonSystemItem: .Trash,
-                target: self, action: "clearNotificationAndClose")
+            let cancelButton = UIBarButtonItem(barButtonSystemItem: .trash,
+                target: self, action: #selector(NotificationAttachmentViewController.clearNotificationAndClose))
             
             self.navigationItem.leftBarButtonItem = cancelButton
             
-            self.datePicker.date = notification.fireDate ?? NSDate()
+            self.datePicker.date = notification.fireDate ?? Date()
             
         } else {
-            let cancelButton = UIBarButtonItem(barButtonSystemItem: .Cancel,
-                target: self, action: "clearNotificationAndClose")
+            let cancelButton = UIBarButtonItem(barButtonSystemItem: .cancel,
+                target: self, action: #selector(NotificationAttachmentViewController.clearNotificationAndClose))
             self.navigationItem.leftBarButtonItem = cancelButton
             
-            self.datePicker.date = NSDate()
+            self.datePicker.date = Date()
         }
         
         // Now add the Done button that adds the attachment
-        let doneButton = UIBarButtonItem(barButtonSystemItem: .Done,
-            target: self, action: "setNotificationAndClose")
+        let doneButton = UIBarButtonItem(barButtonSystemItem: .done,
+            target: self, action: #selector(NotificationAttachmentViewController.setNotificationAndClose))
         self.navigationItem.rightBarButtonItem = doneButton
 
         // Register for changes to user notification settings
-        notificationSettingsWereRegisteredObserver = NSNotificationCenter
-            .defaultCenter().addObserverForName(
-                NotesApplicationDidRegisterUserNotificationSettings,
+        notificationSettingsWereRegisteredObserver = NotificationCenter.default.addObserver(
+                forName: NSNotification.Name(rawValue: NotesApplicationDidRegisterUserNotificationSettings),
                 object: nil, queue: nil,
-                usingBlock: { (notification) -> Void in
+                using: { (notification) -> Void in
                     
-                    if let settings = UIApplication.sharedApplication()
-                        .currentUserNotificationSettings() where
-                        settings.types.contains(.Alert) == true {
-                            self.datePicker.enabled = true
-                            self.datePicker.userInteractionEnabled = true
-                            doneButton.enabled = true
+                    if let settings = UIApplication.shared
+                        .currentUserNotificationSettings ,
+                        settings.types.contains(.alert) == true {
+                            self.datePicker.isEnabled = true
+                            self.datePicker.isUserInteractionEnabled = true
+                            doneButton.isEnabled = true
                     }
             })
         
         // If the app doesn't already have access, register for access
-        if let settings = UIApplication.sharedApplication()
-            .currentUserNotificationSettings()
-            where settings.types.contains(.Alert) != true {
+        if let settings = UIApplication.shared
+            .currentUserNotificationSettings
+            , settings.types.contains(.alert) != true {
                 
                 let action = UIMutableUserNotificationAction()
                 action.identifier = Document.alertSnoozeAction
-                action.activationMode = .Background
+                action.activationMode = .background
                 action.title = "Snooze"
                 
                 let category = UIMutableUserNotificationCategory()
@@ -79,21 +78,21 @@ class NotificationAttachmentViewController: UIViewController, AttachmentViewer {
             
                 category.setActions(
                     [action],
-                    forContext: UIUserNotificationActionContext.Default)
+                    for: UIUserNotificationActionContext.default)
             
                 category.setActions(
                     [action],
-                    forContext: UIUserNotificationActionContext.Minimal)
+                    for: UIUserNotificationActionContext.minimal)
                 
-                let settings = UIUserNotificationSettings(forTypes: .Alert,
+                let settings = UIUserNotificationSettings(types: .alert,
                                                           categories: [category])
                 
-                UIApplication.sharedApplication()
+                UIApplication.shared
                     .registerUserNotificationSettings(settings)
                 
-                self.datePicker.enabled = false
-                self.datePicker.userInteractionEnabled = false
-                doneButton.enabled = false
+                self.datePicker.isEnabled = false
+                self.datePicker.isUserInteractionEnabled = false
+                doneButton.isEnabled = false
         }
     }
     // END notification_view_will_appear
@@ -103,10 +102,10 @@ class NotificationAttachmentViewController: UIViewController, AttachmentViewer {
         
         // Prepare and add the notification if the date picker
         // isn't set in the future
-        let date : NSDate
+        let date : Date
         
         if self.datePicker.date.timeIntervalSinceNow < 5 {
-            date = NSDate(timeIntervalSinceNow: 5)
+            date = Date(timeIntervalSinceNow: 5)
         } else {
             date = self.datePicker.date
         }
@@ -121,7 +120,7 @@ class NotificationAttachmentViewController: UIViewController, AttachmentViewer {
         
         self.document?.localNotification = notification
     
-        self.presentingViewController?.dismissViewControllerAnimated(true,
+        self.presentingViewController?.dismiss(animated: true,
             completion: nil)
     }
     // END notification_save_and_close
@@ -129,7 +128,7 @@ class NotificationAttachmentViewController: UIViewController, AttachmentViewer {
     // BEGIN notification_clear_and_close
     func clearNotificationAndClose() {
         self.document?.localNotification = nil
-        self.presentingViewController?.dismissViewControllerAnimated(true,
+        self.presentingViewController?.dismiss(animated: true,
             completion: nil)
     }
     // END notification_clear_and_close

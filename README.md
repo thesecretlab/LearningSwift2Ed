@@ -34,7 +34,7 @@ You can safely ignore the snippet tags - they don't do anything to the code. How
 
 We hope that you find this repo useful. If you have issues, please either [open an issue](https://github.com/thesecretlab/LearningSwift2Ed/issues/new), or [send us an email](mailto:learningswift@secretlab.com.au).
 
-Unforatunately, we aren't taking contributions for this repo, because it was designed as a partner for a printed book, so accepting changes would likely throw it out of sync with the dead-tree version, leading to confused readers. However, you're strongly encouraged to [fork the code](https://github.com/thesecretlab/LearningSwift2Ed/fork), and make your own, even better version!
+Unfortunately, we aren't taking contributions for this repo, because it was designed as a partner for a printed book, so accepting changes would likely throw it out of sync with the dead-tree version, leading to confused readers. However, you're strongly encouraged to [fork the code](https://github.com/thesecretlab/LearningSwift2Ed/fork), and make your own, even better version!
 
 ## License
 

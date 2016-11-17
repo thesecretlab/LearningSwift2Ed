@@ -381,24 +381,6 @@ class DocumentViewController: UIViewController, UITextViewDelegate {
         var rightButtonItems : [UIBarButtonItem] = []
         rightButtonItems.append(self.editButtonItem)
         
-        // BEGIN bar_items_notification_button
-        let notificationButtonImage : UIImage?
-        if self.document?.localNotification == nil {
-             notificationButtonImage = UIImage(named:"Notification-Off")
-        } else {
-             notificationButtonImage = UIImage(named:"Notification")
-        }
-        
-        
-        let notificationButton =
-            UIBarButtonItem(image: notificationButtonImage,
-                            style: UIBarButtonItemStyle.plain,
-                            target: self,
-                            action: #selector(DocumentViewController.showNotification))
-        
-        rightButtonItems.append(notificationButton)
-        // END bar_items_notification_button
-        
         // BEGIN bar_items_undo_support
         if isEditing {
             undoButton = UIBarButtonItem(barButtonSystemItem: .undo,
@@ -414,13 +396,6 @@ class DocumentViewController: UIViewController, UITextViewDelegate {
         
     }
     // END bar_items
-    
-    // BEGIN show_notification
-    func showNotification() {
-        self.performSegue(withIdentifier: "ShowNotificationAttachment",
-                                        sender: nil)
-    }
-    // END show_notification
     
     // BEGIN view_will_disappear
     override func viewWillDisappear(_ animated: Bool) {
@@ -606,9 +581,10 @@ extension DocumentViewController : UICollectionViewDataSource,
             // or asks the user to grant permission.
             var handler : (_ action:UIAlertAction) -> Void
             
+            let authorizationStatus = AVCaptureDevice
+                .authorizationStatus(forMediaType: AVMediaTypeVideo)
             
-            switch AVCaptureDevice
-                .authorizationStatus(forMediaType: AVMediaTypeVideo) {
+            switch authorizationStatus {
             case .authorized:
                 fallthrough
             case .notDetermined:
@@ -661,13 +637,6 @@ extension DocumentViewController : UICollectionViewDataSource,
                 style: UIAlertActionStyle.default, handler: handler))
         }
         // END add_attachment_sheet_camera
-        
-        // BEGIN add_attachment_sheet_location
-        actionSheet.addAction(UIAlertAction(title: "Location",
-            style: UIAlertActionStyle.default, handler: { (action) -> Void in
-            self.addLocation()
-        }))
-        // END add_attachment_sheet_location
         
         // BEGIN add_attachment_sheet_audio
         actionSheet.addAction(UIAlertAction(title: "Audio",
@@ -976,12 +945,6 @@ extension DocumentViewController  {
         // END document_add_attachment_delegate_implementation_photo_impl
     }
     // END document_add_attachment_delegate_implementation_photo
-    
-    // BEGIN document_add_attachment_delegate_implementation_location
-    func addLocation() {
-        self.performSegue(withIdentifier: "ShowLocationAttachment", sender: nil)
-    }
-    // END document_add_attachment_delegate_implementation_location
     
     // BEGIN document_add_audio
     func addAudio() {

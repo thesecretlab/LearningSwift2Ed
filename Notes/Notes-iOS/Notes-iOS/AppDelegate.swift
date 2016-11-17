@@ -336,43 +336,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
     // END open_url
     
-    // BEGIN local_notification_received
-    func application(_ application: UIApplication,
-         didReceive notification: UILocalNotification) {
-        
-        // Extract the document and open it
-        if notification.category == Document.alertCategory,
-            let url = notification.userInfo?["owner"] as? String,
-            let navigationController =
-                self.window?.rootViewController as? UINavigationController
-            {
-            if let path = URL(string: url)?.path {
-                navigationController.popToRootViewController(animated: false)
-                
-                (navigationController.topViewController as?
-                    DocumentListViewController)?.openDocumentWithPath(path)
-            }
-        }
-        
-    }
-    
-    func application(_ application: UIApplication,
-         handleActionWithIdentifier identifier: String?,
-            for notification: UILocalNotification,
-                                 completionHandler: @escaping () -> Void) {
-        
-        if identifier == Document.alertSnoozeAction {
-            // Reschedule the notification
-            notification.fireDate = Date(timeIntervalSinceNow: 5)
-            application.scheduleLocalNotification(notification)
-        }
-        
-        completionHandler()
-    }
-    // END local_notification_received
-
-    
-    
     
     // BEGIN application_continue_activity
     func application(_ application: UIApplication,
@@ -397,19 +360,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         return false
     }
     // END application_continue_activity
-    
-    // BEGIN application_did_register
-    func application(_ application: UIApplication,
-         didRegister notificationSettings:
-            UIUserNotificationSettings) {
-        
-        NotificationCenter.default.post(
-                name: Notification.Name(rawValue: NotesApplicationDidRegisterUserNotificationSettings),
-                object: self)
-    }
-    // END application_did_register
-    
-    
     
     
 }

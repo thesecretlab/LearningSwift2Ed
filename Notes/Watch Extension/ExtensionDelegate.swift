@@ -15,13 +15,7 @@ import WatchConnectivity
 class SessionManager : NSObject, WCSessionDelegate {
     
     
-    @available(watchOSApplicationExtension 2.2, *)
-    func session(_ session: WCSession,
-                 activationDidCompleteWith activationState: WCSessionActivationState,
-                 error: Error?) {
-        // Session activated.
-    }
-
+    
     
     // BEGIN watch_session_manager_noteinfo
     struct NoteInfo {
@@ -62,6 +56,15 @@ class SessionManager : NSObject, WCSessionDelegate {
         session.activate()
     }
     // END watch_session_manager_singleton_init
+    
+    @available(watchOSApplicationExtension 2.2, *)
+    func session(_ session: WCSession,
+                 activationDidCompleteWith activationState: WCSessionActivationState,
+                 error: Error?) {
+        // Session activated.
+        
+    }
+
     
     // BEGIN watch_session_manager_create_note
     func createNote(_ text:String,
@@ -118,7 +121,7 @@ class SessionManager : NSObject, WCSessionDelegate {
             completionHandler(self.notes, nil)
             
         }, errorHandler: { error in
-            print("Error!")
+            print("Error! \(error)")
             completionHandler([], error as NSError?)
                 
         })

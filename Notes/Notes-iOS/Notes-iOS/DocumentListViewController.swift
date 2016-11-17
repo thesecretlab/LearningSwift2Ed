@@ -268,6 +268,12 @@ class DocumentListViewController: UICollectionViewController {
     }
     // END document_list_editing
     
+    lazy var documentNameDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yy-mm-dd hh-MM-ss"
+        return formatter
+    }()
+    
     // BEGIN query_updated
     func queryUpdated() {
         self.collectionView?.reloadData()
@@ -602,8 +608,9 @@ class DocumentListViewController: UICollectionViewController {
     // BEGIN create_document
     func createDocument() {
         
-        // Create a unique name for this new document by adding a random number
-        let documentName = "Document \(arc4random()).note"
+        // Create a unique name for this new document by adding the date
+        let documentDate = documentNameDateFormatter.string(from: Date())
+        let documentName = "Document \(documentDate).note"
         
         // Work out where we're going to store it, temporarily
         let documentDestinationURL = DocumentListViewController

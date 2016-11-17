@@ -101,21 +101,6 @@ class DocumentViewController: UIViewController, UITextViewDelegate {
         
         super.viewDidLoad()
         
-        let menuController = UIMenuController.shared
-        
-        /*-
-        // BEGIN localization_unlocalized
-        let speakItem = UIMenuItem(title: "Speak", action: "speakSelection:")
-        // END localization_unlocalized
-        -*/
-        
-        // BEGIN localization
-        let speakItem = UIMenuItem(
-            title:  NSLocalizedString("Speak", comment: "speak action"),
-            action: #selector(DocumentViewController.speakSelection(_:)))
-        // END localization
-        menuController.menuItems = [speakItem]
-        
         // BEGIN document_vc_view_did_load_edit_support
         /*- (means that the snippet parser will ignore this line)
         self.editing = false
@@ -165,29 +150,6 @@ class DocumentViewController: UIViewController, UITextViewDelegate {
         updateBarItems()
     }
     // END document_vc_set_editing
-    
-    
-    /*
-    // BEGIN speech_synthesizer
-    let speechSynthesizer = AVSpeechSynthesizer()
-    // END speech_synthesizer
-    */
-    
-    // BEGIN speech_synthesizer_lazy
-    lazy var speechSynthesizer = AVSpeechSynthesizer()
-    // END speech_synthesizer_lazy
-    
-    // BEGIN speak_selection
-    func speakSelection(_ sender:AnyObject) {
-        
-        if let range = self.textView.selectedTextRange,
-            let selectedText = self.textView.text(in: range) {
-
-            let utterance = AVSpeechUtterance(string: selectedText)
-            speechSynthesizer.speak(utterance)
-        }
-    }
-    // END speak_selection
     
     // BEGIN document_vc_link_tapping
     func textView(_ textView: UITextView, shouldInteractWith URL: URL,
@@ -419,24 +381,6 @@ class DocumentViewController: UIViewController, UITextViewDelegate {
         var rightButtonItems : [UIBarButtonItem] = []
         rightButtonItems.append(self.editButtonItem)
         
-        // BEGIN bar_items_notification_button
-        let notificationButtonImage : UIImage?
-        if self.document?.localNotification == nil {
-             notificationButtonImage = UIImage(named:"Notification-Off")
-        } else {
-             notificationButtonImage = UIImage(named:"Notification")
-        }
-        
-        
-        let notificationButton =
-            UIBarButtonItem(image: notificationButtonImage,
-                            style: UIBarButtonItemStyle.plain,
-                            target: self,
-                            action: #selector(DocumentViewController.showNotification))
-        
-        rightButtonItems.append(notificationButton)
-        // END bar_items_notification_button
-        
         // BEGIN bar_items_undo_support
         if isEditing {
             undoButton = UIBarButtonItem(barButtonSystemItem: .undo,
@@ -452,13 +396,6 @@ class DocumentViewController: UIViewController, UITextViewDelegate {
         
     }
     // END bar_items
-    
-    // BEGIN show_notification
-    func showNotification() {
-        self.performSegue(withIdentifier: "ShowNotificationAttachment",
-                                        sender: nil)
-    }
-    // END show_notification
     
     // BEGIN view_will_disappear
     override func viewWillDisappear(_ animated: Bool) {
@@ -644,9 +581,10 @@ extension DocumentViewController : UICollectionViewDataSource,
             // or asks the user to grant permission.
             var handler : (_ action:UIAlertAction) -> Void
             
+            let authorizationStatus = AVCaptureDevice
+                .authorizationStatus(forMediaType: AVMediaTypeVideo)
             
-            switch AVCaptureDevice
-                .authorizationStatus(forMediaType: AVMediaTypeVideo) {
+            switch authorizationStatus {
             case .authorized:
                 fallthrough
             case .notDetermined:
@@ -688,8 +626,8 @@ extension DocumentViewController : UICollectionViewDataSource,
                     }))
                     
                     self.present(alert,
-                                               animated: true,
-                                               completion: nil)
+                           animated: true,
+                           completion: nil)
                 }
             }
             
@@ -700,26 +638,12 @@ extension DocumentViewController : UICollectionViewDataSource,
         }
         // END add_attachment_sheet_camera
         
-        // BEGIN add_attachment_sheet_location
-        actionSheet.addAction(UIAlertAction(title: "Location",
-            style: UIAlertActionStyle.default, handler: { (action) -> Void in
-            self.addLocation()
-        }))
-        // END add_attachment_sheet_location
-        
         // BEGIN add_attachment_sheet_audio
         actionSheet.addAction(UIAlertAction(title: "Audio",
             style: UIAlertActionStyle.default, handler: { (action) -> Void in
             self.addAudio()
         }))
         // END add_attachment_sheet_audio
-        
-        // BEGIN add_attachment_sheet_contact
-        actionSheet.addAction(UIAlertAction(title: "Contact",
-            style: UIAlertActionStyle.default, handler: { (action) -> Void in
-            self.addContact()
-        }))
-        // END add_attachment_sheet_contact
         
         actionSheet.addAction(UIAlertAction(title: "Cancel",
             style: UIAlertActionStyle.cancel, handler: nil))
@@ -760,10 +684,10 @@ extension DocumentViewController : UICollectionViewDataSource,
 
         // Work out how many cells we have
         let totalNumberOfCells = collectionView
-            .numberOfItems(inSection: (indexPath as NSIndexPath).section)
+            .numberOfItems(inSection: indexPath.section)
         
         // If we have selected the last cell, show the Add screen
-        if (indexPath as NSIndexPath).row == totalNumberOfCells-1 {
+        if indexPath.row == totalNumberOfCells - 1 {
             addAttachment(selectedCell)
         }
         // BEGIN document_vc_didselectitem_attachments
@@ -1022,12 +946,6 @@ extension DocumentViewController  {
     }
     // END document_add_attachment_delegate_implementation_photo
     
-    // BEGIN document_add_attachment_delegate_implementation_location
-    func addLocation() {
-        self.performSegue(withIdentifier: "ShowLocationAttachment", sender: nil)
-    }
-    // END document_add_attachment_delegate_implementation_location
-    
     // BEGIN document_add_audio
     func addAudio() {
         self.performSegue(withIdentifier: "ShowAudioAttachment", sender: nil)
@@ -1038,39 +956,6 @@ extension DocumentViewController  {
 }
 // END document_add_attachment_delegate_implementation
 
-// BEGIN contacts_attachment
-extension DocumentViewController : CNContactPickerDelegate {
-    
-    func addContact() {
-        let contactPicker = CNContactPickerViewController()
-        contactPicker.delegate = self
-        self.shouldCloseOnDisappear = false
-        self.present(contactPicker,
-                                   animated: true,
-                                   completion: nil)
-    }
-    
-    func contactPicker(_ picker: CNContactPickerViewController,
-         didSelect contact: CNContact) {
-        
-        do {
-            if let data = try? CNContactVCardSerialization
-                .data(with: [contact]) {
-                
-                let name = "\(contact.identifier)-" +
-                    "\(contact.givenName)\(contact.familyName).vcf"
-                
-                try self.document?.addAttachmentWithData(data, name: name)
-                self.attachmentsCollectionView?.reloadData()                
-            }
-        } catch let error as NSError {
-            NSLog("Failed to save contact: \(error)")
-        }
-    }
-    
-}
-// END contacts_attachment
-
 // BEGIN document_image_controller_support
 extension DocumentViewController : UIImagePickerControllerDelegate,
     UINavigationControllerDelegate {
@@ -1080,9 +965,12 @@ extension DocumentViewController : UIImagePickerControllerDelegate,
         didFinishPickingMediaWithInfo info: [String : Any]) {
             do {
                 
-                if let image = (info[UIImagePickerControllerEditedImage]
-                    ?? info[UIImagePickerControllerOriginalImage]) as? UIImage,
-                    let imageData = UIImageJPEGRepresentation(image, 0.8)  {
+                if let image = (info[UIImagePickerControllerEditedImage] as? UIImage
+                    ?? info[UIImagePickerControllerOriginalImage] as? UIImage) {
+                    
+                    guard let imageData = UIImageJPEGRepresentation(image, 0.8) else {
+                        throw err(.cannotSaveAttachment)
+                    }
                         
                     try self.document?.addAttachmentWithData(imageData,
                         name: "Image \(arc4random()).jpg")

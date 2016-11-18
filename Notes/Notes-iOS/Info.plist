@@ -117,5 +117,16 @@
 	<string>We&apos;ll use the camera to take photos and videos, and add them as attachments.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>We&apos;ll use the microphone to record audio attachments.</string>
+	<key>UIApplicationShortcutItems</key>
+	<array>
+		<dict>
+			<key>UIApplicationShortcutItemTitle</key>
+			<string>New Note</string>
+			<key>UIApplicationShortcutItemType</key>
+			<string>au.com.secretlab.Notes.new-note</string>
+			<key>UIApplicationShortcutItemIconType</key>
+			<string>UIApplicationShortcutIconTypeCompose</string>
+		</dict>
+	</array>
 </dict>
 </plist>

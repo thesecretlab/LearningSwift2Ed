@@ -250,6 +250,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     var window: UIWindow?
     
+    let createNoteActionType = "au.com.secretlab.Notes.new-note"
+    
     
     func application(_ application: UIApplication,
          didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?)
@@ -271,8 +273,55 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         WCSession.default().delegate = self
         WCSession.default().activate()
         // END ios_watch_did_finish_launching
+            
+        // Did we launch as a result of using a shortcut option?
+        if let shortcutItem = launchOptions?[.shortcutItem] as? UIApplicationShortcutItem {
+            
+            // We did! Was it the 'create note' shortcut?
+            if shortcutItem.type == createNoteActionType {
+                // Create a new document.
+                createNewDocument()
+            }
+            
+            // Return false to indicate that 'performActionForShortcutItem' doesn't need to be called
+            return false
+        }
         
         return true
+    }
+    
+    func createNewDocument() {
+        
+        
+        // Ensure that the root view controller is a navigation controller
+        guard let navigationController = self.window?.rootViewController as? UINavigationController else {
+            fatalError("The root view controller is not a navigation controller!")
+        }
+        
+        // Ensure that the navigation controller's root view controller is the Document List
+        guard let documentList = navigationController.viewControllers.first as? DocumentListViewController else {
+            fatalError("The navigation controller's first view controller is not a DocumentListViewController!")
+        }
+        
+        // Move back to the root view controller
+        navigationController.popToRootViewController(animated: false)
+        
+        // Ask the document list to create a new document
+        documentList.createDocument()
+        
+    }
+    
+    func application(_ application: UIApplication, performActionFor shortcutItem: UIApplicationShortcutItem, completionHandler: @escaping (Bool) -> Void) {
+        
+        if shortcutItem.type == createNoteActionType {
+            createNewDocument()
+            
+            completionHandler(true)
+        } else {
+            completionHandler(false)
+        }
+
+        
     }
     
     func applicationWillResignActive(_ application: UIApplication) {

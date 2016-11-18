@@ -199,6 +199,10 @@ class DocumentListViewController: UICollectionViewController {
         }
         // END prompt_for_icloud
         
+        // Mark the collection view as preview-able, if our current device supports 3D Touch.
+        if self.traitCollection.forceTouchCapability == .available {
+            self.registerForPreviewing(with: self, sourceView: self.collectionView!)
+        }
         
     }
     // END doc_list_view_did_load
@@ -713,3 +717,65 @@ class DocumentListViewController: UICollectionViewController {
     
 }
 
+extension DocumentListViewController : UIViewControllerPreviewingDelegate {
+    func previewingContext(_ previewingContext: UIViewControllerPreviewing, viewControllerForLocation location: CGPoint) -> UIViewController? {
+        
+        // Determine which cell was tapped; if we can't, return nil to indicate that we 
+        // can't offer a preview
+        guard let indexPath = self.collectionView?.indexPathForItem(at: location) else {
+            return nil
+        }
+        
+        // Get the cell object for this location
+        guard let cell = self.collectionView?.cellForItem(at: indexPath) else {
+            fatalError("We have an index path, but not a cell, for some reason?")
+        }
+        
+        // Tell the previewing context about the shape that should remain unblurred
+        previewingContext.sourceRect = cell.frame
+        
+        // Determine the document URL that this cell represents
+        let selectedItem = availableFiles[indexPath.item]
+        
+        // Create a DocumentViewController for showing this file
+        guard let documentVC = self.storyboard?.instantiateViewController(withIdentifier: "DocumentViewController") as? DocumentViewController else {
+            fatalError("Expected to get a DocumentViewController here - make sure that the " +
+                "Document View Controller's storyboard identifier is set up correctly")
+        }
+        
+        // Give the document URL to the document view controller
+        documentVC.documentURL = selectedItem
+        
+        // Create a navigation controller to embed this in
+        let navigationVC = UINavigationController(rootViewController: documentVC)
+        
+        // Return this navigation controllder
+        return navigationVC
+        
+        
+    }
+    
+    func previewingContext(_ previewingContext: UIViewControllerPreviewing, commit viewControllerToCommit: UIViewController) {
+        
+        // The viewControllerToCommit is a navigation controller that contains a document view controller.
+        // Ensure that this is the case.
+        guard let navigationVC = viewControllerToCommit as? UINavigationController else {
+            fatalError("Expected the preview view controller to be a navigation controller")
+        }
+        
+        guard let documentVC = navigationVC.viewControllers.first as? DocumentViewController else {
+            fatalError("Expected the preview view controller to contain a document view controller")
+        }
+        
+        // Get the document view controller's URL
+        guard let url = documentVC.documentURL else {
+            fatalError("Expected the document view controller to have a document set")
+        }
+        
+        // Present the segue, just as if we'd tapped on the cell
+        self.performSegue(withIdentifier: "ShowDocument", sender: url)
+        
+        
+        
+    }
+}

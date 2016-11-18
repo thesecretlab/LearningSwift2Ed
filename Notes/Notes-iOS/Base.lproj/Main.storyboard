@@ -106,7 +106,7 @@
         <!--Document View Controller-->
         <scene sceneID="Szl-3b-fcJ">
             <objects>
-                <viewController id="q79-Lx-AiG" customClass="DocumentViewController" customModule="Notes_iOS" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="DocumentViewController" id="q79-Lx-AiG" customClass="DocumentViewController" customModule="Notes_iOS" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="fnY-HL-Uci"/>
                         <viewControllerLayoutGuide type="bottom" id="U57-nI-DZ1"/>
@@ -420,6 +420,7 @@
             <objects>
                 <navigationController id="vC3-pB-5Vb" sceneMemberID="viewController">
                     <navigationBar key="navigationBar" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" id="DjV-YW-jjY">
+                        <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
                     <connections>

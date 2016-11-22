@@ -322,6 +322,13 @@ for index in 1 ... 10 { // note the three dots, not two
 // END for_range_inclusive
 print("Looped \(secondCounter) times")
 
+// stride loop
+// BEGIN stride_loop
+for i in stride(from: 0, to: 1, by: 0.1) {
+    print(i)
+}
+// END stride_loop
+
 // While loop
 // BEGIN while_loop
 var countDown = 5
@@ -1006,10 +1013,36 @@ public class AccessControl {
     
     // BEGIN private_setter_property
     // The setter is private, so other files can't modify it
-    private(set) var privateSetterProperty = 123
+    fileprivate(set) var privateSetterProperty = 123
     // END private_setter_property
 }
 // END access_control_class
+
+//BEGIN private_vs_fileprivate
+class AccessObject {
+    func doAThing()
+    {
+        print("doing a thing")
+    }
+}
+extension AccessObject {
+    private func doAPrivateThing() {
+        print("doing a private thing")
+    }
+    fileprivate func doAFilePrivateThing() {
+        print("doing a file private thing")
+        // can call private functions here
+        // as we are in the same scope
+        doAPrivateThing()
+    }
+}
+
+let accessDemo = AccessObject()
+accessDemo.doAThing()
+accessDemo.doAFilePrivateThing()
+// the following won't work
+// accessDemo.doAPrivateThing()
+// END private_vs_fileprivate
 
 
 // ------

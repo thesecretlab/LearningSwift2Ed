@@ -567,8 +567,11 @@ extension DocumentViewController : UICollectionViewDataSource,
     
     // BEGIN add_attachment_sheet
     func addAttachment(_ sourceView : UIView) {
+        
+        let title = NSLocalizedString("Add attachment", comment: "Add attachment title")
+        
         let actionSheet
-            = UIAlertController(title: "Add attachment",
+            = UIAlertController(title: title,
                                 message: nil,
                                 preferredStyle: UIAlertControllerStyle
                                     .actionSheet)

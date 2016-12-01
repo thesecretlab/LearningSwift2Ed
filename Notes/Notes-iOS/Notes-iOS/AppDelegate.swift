@@ -250,7 +250,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     var window: UIWindow?
     
+    // BEGIN home_action_type
     let createNoteActionType = "au.com.secretlab.Notes.new-note"
+    // END home_action_type
     
     
     func application(_ application: UIApplication,
@@ -273,7 +275,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         WCSession.default().delegate = self
         WCSession.default().activate()
         // END ios_watch_did_finish_launching
-            
+        
+        // BEGIN home_action_launch
         // Did we launch as a result of using a shortcut option?
         if let shortcutItem = launchOptions?[.shortcutItem] as? UIApplicationShortcutItem {
             
@@ -286,10 +289,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             // Return false to indicate that 'performActionForShortcutItem' doesn't need to be called
             return false
         }
+        // END home_action_launch
         
         return true
     }
     
+    // BEGIN home_action_createNewDocument
     func createNewDocument() {
         
         
@@ -308,8 +313,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         // Ask the document list to create a new document
         documentList.createDocument()
-        
     }
+    // END home_action_createNewDocument
     
     func application(_ application: UIApplication, performActionFor shortcutItem: UIApplicationShortcutItem, completionHandler: @escaping (Bool) -> Void) {
         

@@ -10,6 +10,8 @@ import UIKit
 
 // BEGIN import_mobilecoreservices
 import MobileCoreServices
+// END import_mobilecoreservices
+
 fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
   switch (lhs, rhs) {
   case let (l?, r?):
@@ -38,8 +40,6 @@ fileprivate func >= <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
     return !(lhs < rhs)
   }
 }
-
-// END import_mobilecoreservices
 
 // Type info and thumbnails
 
@@ -262,7 +262,7 @@ class Document: UIDocument {
         }
         
         // attachmentsFileWrappers is a dictionary mapping filenames
-        // to NSFileWrapper objects; we only care about the NSFileWrappers,
+        // to FileWrapper objects; we only care about the FileWrappers,
         // so return that as an array
         return Array(attachmentsFileWrappers.values)
             

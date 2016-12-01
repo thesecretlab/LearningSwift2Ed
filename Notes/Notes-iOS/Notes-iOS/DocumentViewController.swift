@@ -698,7 +698,7 @@ extension DocumentViewController : UICollectionViewDataSource,
             // Otherwise, show a different view controller based on the type
             // of the attachment
             guard let attachment = self.document?
-                .attachedFiles?[(indexPath as NSIndexPath).row] else {
+                .attachedFiles?[(indexPath as IndexPath).row] else {
                     
                 NSLog("No attachment for this cell!")
                 return

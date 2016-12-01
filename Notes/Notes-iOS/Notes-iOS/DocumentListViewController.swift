@@ -199,10 +199,12 @@ class DocumentListViewController: UICollectionViewController {
         }
         // END prompt_for_icloud
         
+        // BEGIN peek_pop_register
         // Mark the collection view as preview-able, if our current device supports 3D Touch.
         if self.traitCollection.forceTouchCapability == .available {
             self.registerForPreviewing(with: self, sourceView: self.collectionView!)
         }
+        //END peek_pop_register
         
     }
     // END doc_list_view_did_load
@@ -561,10 +563,10 @@ class DocumentListViewController: UICollectionViewController {
         }
         
         // Ask the system for the download status
-        var downloadStatus : AnyObject?
+        var resource : URLResourceValues
         do {
-            try (itemURL as NSURL).getResourceValue(&downloadStatus,
-                forKey: URLResourceKey.ubiquitousItemDownloadingStatusKey)
+            resource = try itemURL.resourceValues(forKeys:
+                                        [.ubiquitousItemDownloadingStatusKey])
         } catch let error as NSError {
             NSLog("Failed to get downloading status for \(itemURL): \(error)")
             // If we can't get that, we can't open it
@@ -572,9 +574,8 @@ class DocumentListViewController: UICollectionViewController {
         }
         
         // Return true if this file is the most current version
-        if downloadStatus as? URLUbiquitousItemDownloadingStatus
-            == URLUbiquitousItemDownloadingStatus.current {
-            
+        if resource.ubiquitousItemDownloadingStatus ==
+                                URLUbiquitousItemDownloadingStatus.current {
             return true
         } else {
             return false
@@ -717,6 +718,7 @@ class DocumentListViewController: UICollectionViewController {
     
 }
 
+// BEGIN peek_pop_extension
 extension DocumentListViewController : UIViewControllerPreviewingDelegate {
     func previewingContext(_ previewingContext: UIViewControllerPreviewing, viewControllerForLocation location: CGPoint) -> UIViewController? {
         
@@ -731,11 +733,11 @@ extension DocumentListViewController : UIViewControllerPreviewingDelegate {
             fatalError("We have an index path, but not a cell, for some reason?")
         }
         
-        // Tell the previewing context about the shape that should remain unblurred
-        previewingContext.sourceRect = cell.frame
-        
         // Determine the document URL that this cell represents
         let selectedItem = availableFiles[indexPath.item]
+        
+        // Tell the previewing context about the shape that should remain unblurred
+        previewingContext.sourceRect = cell.frame
         
         // Create a DocumentViewController for showing this file
         guard let documentVC = self.storyboard?.instantiateViewController(withIdentifier: "DocumentViewController") as? DocumentViewController else {
@@ -751,8 +753,6 @@ extension DocumentListViewController : UIViewControllerPreviewingDelegate {
         
         // Return this navigation controllder
         return navigationVC
-        
-        
     }
     
     func previewingContext(_ previewingContext: UIViewControllerPreviewing, commit viewControllerToCommit: UIViewController) {
@@ -774,8 +774,6 @@ extension DocumentListViewController : UIViewControllerPreviewingDelegate {
         
         // Present the segue, just as if we'd tapped on the cell
         self.performSegue(withIdentifier: "ShowDocument", sender: url)
-        
-        
-        
     }
 }
+// END peek_pop_extension

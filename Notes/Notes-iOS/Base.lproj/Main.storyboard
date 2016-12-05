@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="11542" systemVersion="16A323" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="vC3-pB-5Vb">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="11542" systemVersion="16B2555" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="vC3-pB-5Vb">
     <device id="retina4_7" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
@@ -254,6 +254,9 @@
                         <segue destination="FAy-If-e8Q" kind="popoverPresentation" identifier="ShowAudioAttachment" popoverAnchorView="zLd-bK-ZgR" id="ZKT-sR-DfW">
                             <popoverArrowDirection key="popoverArrowDirection" up="YES" down="YES" left="YES" right="YES"/>
                         </segue>
+                        <segue destination="EoD-uw-akM" kind="popoverPresentation" identifier="ShowLocationAttachment" popoverAnchorView="Lrw-wP-kHg" id="WkC-Bp-8Ca">
+                            <popoverArrowDirection key="popoverArrowDirection" up="YES" down="YES" left="YES" right="YES"/>
+                        </segue>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="ljM-FA-lcs" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -359,6 +362,41 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="XHH-dU-3yZ" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="1821" y="877"/>
+        </scene>
+        <!--Location Attachment View Controller-->
+        <scene sceneID="Wdm-Le-eoe">
+            <objects>
+                <viewController id="EoD-uw-akM" customClass="LocationAttachmentViewController" customModule="Notes_iOS" customModuleProvider="target" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="T0s-SR-bv0"/>
+                        <viewControllerLayoutGuide type="bottom" id="5Uv-J4-42f"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="7pG-cd-Zuo">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="Qzz-sx-LuM">
+                                <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                                <connections>
+                                    <outlet property="delegate" destination="EoD-uw-akM" id="PS5-PC-9p1"/>
+                                </connections>
+                            </mapView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstAttribute="trailing" secondItem="Qzz-sx-LuM" secondAttribute="trailing" id="Jtk-Qf-qr1"/>
+                            <constraint firstItem="Qzz-sx-LuM" firstAttribute="top" secondItem="7pG-cd-Zuo" secondAttribute="top" id="Tdl-V8-Zit"/>
+                            <constraint firstItem="5Uv-J4-42f" firstAttribute="top" secondItem="Qzz-sx-LuM" secondAttribute="bottom" id="gwL-n2-Rat"/>
+                            <constraint firstItem="Qzz-sx-LuM" firstAttribute="leading" secondItem="7pG-cd-Zuo" secondAttribute="leading" id="mss-4D-ibv"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="mapview" destination="Qzz-sx-LuM" id="oo3-uG-RXC"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="ZvK-RK-CeL" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="861.60000000000002" y="893.70314842578716"/>
         </scene>
         <!--Audio Attachment View Controller-->
         <scene sceneID="OzY-fC-KHh">

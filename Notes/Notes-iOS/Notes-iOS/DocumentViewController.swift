@@ -10,10 +10,13 @@ import UIKit
 
 import MobileCoreServices
 
+// BEGIN location_framework
+import CoreLocation
+// END location_framework
+
 // BEGIN core_spotlight
 import CoreSpotlight
 // END core_spotlight
-
 
 // BEGIN import_avkit
 import AVKit
@@ -95,6 +98,10 @@ class DocumentViewController: UIViewController, UITextViewDelegate {
     var stateChangedObserver : AnyObject?
     // END state_changed_observer
     
+    // BEGIN location_manager
+    var locationManager : CLLocationManager?
+    // END location_manager
+    
     
     // BEGIN document_vc_view_did_load
     override func viewDidLoad() {
@@ -130,7 +137,36 @@ class DocumentViewController: UIViewController, UITextViewDelegate {
         
         // END document_vc_view_did_load_undo_support
         
-        
+        // BEGIN location_viewDidLoad
+        // checking if there is already a location file
+        var locationAlreadySaved = false
+        if let attachedFiles = self.document?.attachedFiles {
+            for attachment in attachedFiles {
+                if attachment.conformsToType(kUTTypeJSON) {
+                    locationAlreadySaved = true
+                    break
+                }
+            }
+        }
+        if !locationAlreadySaved {
+            // determining our location permission status
+            let status = CLLocationManager.authorizationStatus()
+            
+            if status != .denied && status != .restricted {
+                self.locationManager = CLLocationManager()
+                self.locationManager?.delegate = self
+                
+                if status == .notDetermined {
+                    self.locationManager?.requestWhenInUseAuthorization()
+                }
+                else {
+                    self.locationManager?.desiredAccuracy
+                        = kCLLocationAccuracyBest
+                    self.locationManager?.startUpdatingLocation()
+                }
+            }
+        }
+        // END location_viewDidLoad
     }
     // END document_vc_view_did_load
     
@@ -709,16 +745,20 @@ extension DocumentViewController : UICollectionViewDataSource,
             if attachment.conformsToType(kUTTypeImage) {
                 segueName = "ShowImageAttachment"
                 
-            // BEGIN document_vc_didselectitem_attachments_location
-            } else if attachment.conformsToType(kUTTypeJSON) {
-                segueName = "ShowLocationAttachment"
-            // END document_vc_didselectitem_attachments_location
+            }
             // BEGIN document_vc_didselectitem_attachments_audio
-            } else if attachment.conformsToType(kUTTypeAudio) {
+            else if attachment.conformsToType(kUTTypeAudio) {
                 segueName = "ShowAudioAttachment"
+            }
             // END document_vc_didselectitem_attachments_audio
+            // BEGIN document_vc_didselectitem_attachments_location
+            else if attachment.conformsToType(kUTTypeJSON) {
+                segueName = "ShowLocationAttachment"
+            }
+            // END document_vc_didselectitem_attachments_location
+
             // BEGIN document_vc_didselectitem_attachments_movie
-            } else if attachment.conformsToType(kUTTypeMovie) {
+            else if attachment.conformsToType(kUTTypeMovie) {
                 
                 self.document?.URLForAttachment(attachment,
                     completion: { (url) -> Void in
@@ -739,36 +779,6 @@ extension DocumentViewController : UICollectionViewDataSource,
                 
                 segueName = nil
             // END document_vc_didselectitem_attachments_movie
-            // BEGIN document_vc_didselectitem_attachments_contact
-            } else if attachment.conformsToType(kUTTypeContact) {
-                
-                do {
-                    if let data = attachment.regularFileContents,
-                        let contact = try CNContactVCardSerialization
-                        .contacts(with: data).first {
-                        
-                        let contactViewController =
-                            CNContactViewController(for: contact)
-                            
-                        let navigationController =
-                            UINavigationController(rootViewController:
-                                contactViewController)
-                        
-                        contactViewController.navigationItem
-                            .rightBarButtonItem = UIBarButtonItem(
-                                barButtonSystemItem: .done,
-                                target: self,
-                                action: #selector(DocumentViewController.dismissModalView))
-                            
-                        self.present(navigationController,
-                            animated: true, completion: nil)
-                    }
-                } catch let error as NSError {
-                        NSLog("Error displaying contact: \(error)")
-                }
-                
-                segueName = nil
-            // END document_vc_didselectitem_attachments_contact
             } else {
                 
                 // BEGIN document_vc_didselectitem_attachments_documentcontroller
@@ -1032,9 +1042,8 @@ extension DocumentViewController {
                 } else  {
                     cell.alpha = 0
                 }
-                
             }
-        }) 
+        })
         
         let doneButton = UIBarButtonItem(barButtonSystemItem:
             UIBarButtonSystemItem.done, target: self, action: #selector(DocumentViewController.endEditMode))
@@ -1062,4 +1071,50 @@ extension DocumentViewController {
         self.navigationItem.rightBarButtonItem = nil
     }
     // END end_edit_mode
+}
+
+// BEGIN location_extension
+extension DocumentViewController: CLLocationManagerDelegate {
+// END location_extension
+    
+    // BEGIN location_authorisation_changed
+    func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
+        if status == .authorizedWhenInUse {
+            self.locationManager?.desiredAccuracy = kCLLocationAccuracyBest
+            self.locationManager?.startUpdatingLocation()
+        }
+    }
+    // END location_authorisation_changed
+    
+    // BEGIN location_didUpdate
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        self.locationManager?.stopUpdatingLocation()
+        guard let location = locations.last else {
+            return
+        }
+        
+        // creating a json representation of our location
+        let latitude = location.coordinate.latitude
+        let longitude = location.coordinate.longitude
+        
+        let locationData = ["lat":latitude, "long":longitude]
+        
+        do {
+            let json = try JSONSerialization.data(withJSONObject: locationData,
+                                    options: JSONSerialization.WritingOptions())
+            
+            // saving the json as an attachment to the document
+            try self.document?.addAttachmentWithData(json, name: "location.json")
+            
+            // updating the attachment list view
+            self.attachmentsCollectionView.reloadData()
+        }
+        catch let error as NSError
+        {
+            print("unable to save location: \(error)")
+            self.locationManager?.startUpdatingLocation()
+        }
+        
+    }
+    // END location_didUpdate
 }

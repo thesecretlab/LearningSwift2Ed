@@ -89,14 +89,6 @@ extension FileWrapper {
             return UIImage(data: attachmentContent)
         }
         
-        // BEGIN thumbnail_image_location
-        if self.conformsToType(kUTTypeJSON) {
-            // JSON files used to store locations
-            return UIImage(named: "Location")
-        }
-        
-        // END thumbnail_image_location
-        
         // BEGIN thumbnail_image_audio
         if (self.conformsToType(kUTTypeAudio)) {
             return UIImage(named: "Audio")
@@ -109,11 +101,11 @@ extension FileWrapper {
         }
         // END thumbnail_image_movie
         
-        // BEGIN thumbnail_image_contact
-        if self.conformsToType(kUTTypeContact) {
-            return UIImage(named: "Contact")
+        // BEGIN thumbnail_image_location
+        if self.conformsToType(kUTTypeJSON) {
+            return UIImage(named: "Location")
         }
-        // END thumbnail_image_contact
+        // END thumbnail_image_location
         
         // We don't know what type it is, so return nil
         return nil

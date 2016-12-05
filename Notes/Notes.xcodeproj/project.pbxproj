@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		334C1D0C1DF1031C00669FF2 /* LocationAttachmentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 334C1D0B1DF1031C00669FF2 /* LocationAttachmentViewController.swift */; };
 		6805A51E1C44DE660057C646 /* AttachmentCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6805A51C1C44DE660057C646 /* AttachmentCell.swift */; };
 		6805A51F1C44DE660057C646 /* AttachmentCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 6805A51D1C44DE660057C646 /* AttachmentCell.xib */; };
 		682507EE1BE83DCA0080EFC7 /* Interface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 682507EC1BE83DCA0080EFC7 /* Interface.storyboard */; };
@@ -137,6 +138,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		334C1D0B1DF1031C00669FF2 /* LocationAttachmentViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocationAttachmentViewController.swift; sourceTree = "<group>"; };
 		6805A51C1C44DE660057C646 /* AttachmentCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AttachmentCell.swift; sourceTree = "<group>"; };
 		6805A51D1C44DE660057C646 /* AttachmentCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = AttachmentCell.xib; sourceTree = "<group>"; };
 		682507EA1BE83DCA0080EFC7 /* Watch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Watch.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -308,6 +310,7 @@
 				685196161B8D653600548D79 /* Document.swift */,
 				68D6178D1B8ED82A0049C16A /* ImageAttachmentViewController.swift */,
 				6848C6321B8FD9D2000B3B00 /* AudioAttachmentViewController.swift */,
+				334C1D0B1DF1031C00669FF2 /* LocationAttachmentViewController.swift */,
 				685195E91B8D60A200548D79 /* Main.storyboard */,
 				685195EE1B8D60A200548D79 /* LaunchScreen.storyboard */,
 				68F9633E1C27CB88009EE886 /* Localizable.strings */,
@@ -810,6 +813,7 @@
 			files = (
 				685196191B8D7F5B00548D79 /* DocumentViewController.swift in Sources */,
 				685195E61B8D60A200548D79 /* DocumentListViewController.swift in Sources */,
+				334C1D0C1DF1031C00669FF2 /* LocationAttachmentViewController.swift in Sources */,
 				6848C6331B8FD9D3000B3B00 /* AudioAttachmentViewController.swift in Sources */,
 				685195E41B8D60A200548D79 /* AppDelegate.swift in Sources */,
 				685196151B8D622A00548D79 /* DocumentCommon.swift in Sources */,

@@ -101,12 +101,6 @@ extension FileWrapper {
         }
         // END thumbnail_image_movie
         
-        // BEGIN thumbnail_image_location
-        if self.conformsToType(kUTTypeJSON) {
-            return UIImage(named: "Location")
-        }
-        // END thumbnail_image_location
-        
         // We don't know what type it is, so return nil
         return nil
     }
@@ -128,6 +122,10 @@ class Document: UIDocument {
             self.updateChangeCount(UIDocumentChangeKind.done)
         }
     }
+    
+    // BEGIN location_attachment_wrapper
+    var locationWrapper : FileWrapper?
+    // END location_attachment_wrapper
     
     var documentFileWrapper = FileWrapper(directoryWithFileWrappers: [:])
     
@@ -174,6 +172,16 @@ class Document: UIDocument {
         self.documentFileWrapper.addFileWrapper(quickLookFolderFileWrapper)
         // END document_base_quicklook
         
+        // BEGIN location_attachment_save
+        // checking if there is already a location saved
+        if self.documentFileWrapper.fileWrappers?[NoteDocumentFileNames.locationAttachment.rawValue] == nil {
+            // saving the location if there is one
+            if let location = self.locationWrapper {
+                self.documentFileWrapper.addFileWrapper(location)
+            }
+        }
+        // END location_attachment_save
+        
         self.documentFileWrapper.addRegularFile(withContents: textRTFData,
             preferredFilename: NoteDocumentFileNames.TextFile.rawValue)
         
@@ -181,6 +189,7 @@ class Document: UIDocument {
     }
     // END document_contents_for_type
 
+    // BEGIN location_document_load
     override func load(fromContents contents: Any,
         ofType typeName: String?) throws {
         
@@ -205,7 +214,13 @@ class Document: UIDocument {
         // Keep a reference to the file wrapper
         self.documentFileWrapper = fileWrapper
         
+        // BEGIN location_attachment_load
+        // opening the location filewrapper
+        self.locationWrapper = fileWrapper.fileWrappers?[NoteDocumentFileNames.locationAttachment.rawValue]
+        // END location_attachment_load
+        
     }
+    // END location_document_load
     // END document_base
     
     // BEGIN document_attachment_dir
@@ -361,53 +376,6 @@ class Document: UIDocument {
     }
     // END delete_attachment
     
-    
-    // BEGIN notification_property
-    var localNotification: UILocalNotification? {
-        
-        get {
-            if let allNotifications = UIApplication.shared
-                .scheduledLocalNotifications {
-                
-                return allNotifications.filter({
-                    (item:UILocalNotification) -> Bool in
-                    
-                    
-                    // If it has an "owner", and will appear in the future..
-                    if let owner = item.userInfo?["owner"] as? String ,
-                        item.fireDate?.timeIntervalSinceNow > 0
-                        {
-                            // Then it is ours if the owner equals our own URL
-                        return owner == self.fileURL.absoluteString
-                    } else {
-                        return false
-                    }
-                    
-                }).first
-                
-            } else {
-                return nil
-            }
-        }
-        
-        set {
-            if let currentNotification = self.localNotification {
-                UIApplication.shared
-                    .cancelLocalNotification(currentNotification)
-            }
-            
-            if let theNotification = newValue {
-                var userInfo = theNotification.userInfo ?? [:]
-                userInfo["owner"] = self.fileURL.absoluteString
-                theNotification.userInfo = userInfo
-                
-                UIApplication.shared
-                    .scheduleLocalNotification(theNotification)
-            }
-        }
-    }
-    // END notification_property
-    
     // BEGIN ios_thumbnail_icon
     func iconImageDataWithSize(_ size: CGSize) -> Data? {
         UIGraphicsBeginImageContext(size)
@@ -440,4 +408,19 @@ class Document: UIDocument {
     }
     // END ios_thumbnail_icon
     
+    // BEGIN location_add_location
+    func addLocation(withData data: Data) {
+        // making sure we don't already have a location
+        guard self.locationWrapper == nil else {
+            return
+        }
+        
+        let newLocation = FileWrapper(regularFileWithContents: data)
+        newLocation.preferredFilename = NoteDocumentFileNames.locationAttachment.rawValue
+        
+        self.locationWrapper = newLocation
+        
+        self.updateChangeCount(.done)
+    }
+    // END location_add_location
 }

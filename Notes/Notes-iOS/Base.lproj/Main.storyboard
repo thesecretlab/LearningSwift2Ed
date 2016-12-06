@@ -13,7 +13,7 @@
         <scene sceneID="s2Z-eV-8Gp">
             <objects>
                 <collectionViewController id="SqM-sd-P1w" customClass="DocumentListViewController" customModule="Notes_iOS" customModuleProvider="target" sceneMemberID="viewController">
-                    <collectionView key="view" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" id="o7f-Me-Rd8">
+                    <collectionView key="view" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" misplaced="YES" dataMode="prototypes" id="o7f-Me-Rd8">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
@@ -254,9 +254,7 @@
                         <segue destination="FAy-If-e8Q" kind="popoverPresentation" identifier="ShowAudioAttachment" popoverAnchorView="zLd-bK-ZgR" id="ZKT-sR-DfW">
                             <popoverArrowDirection key="popoverArrowDirection" up="YES" down="YES" left="YES" right="YES"/>
                         </segue>
-                        <segue destination="EoD-uw-akM" kind="popoverPresentation" identifier="ShowLocationAttachment" popoverAnchorView="Lrw-wP-kHg" id="WkC-Bp-8Ca">
-                            <popoverArrowDirection key="popoverArrowDirection" up="YES" down="YES" left="YES" right="YES"/>
-                        </segue>
+                        <segue destination="EoD-uw-akM" kind="show" identifier="ShowLocationSegue" id="8ao-JF-kyG"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="ljM-FA-lcs" userLabel="First Responder" sceneMemberID="firstResponder"/>

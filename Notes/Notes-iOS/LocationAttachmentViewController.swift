@@ -11,14 +11,11 @@ import UIKit
 import MapKit
 // END mapkit_frameworks
 
-// BEGIN map_protocols
-class LocationAttachmentViewController: UIViewController, AttachmentViewer {
-// END map_protocols
+class LocationAttachmentViewController: UIViewController {
 
-    // BEGIN map_attachment_protocol_compliance
-    var attachmentFile: FileWrapper?
-    var document: Document?
-    // END map_attachment_protocol_compliance
+    // BEGIN map_location_attachment_property
+    var locationAttachment: FileWrapper?
+    // END map_location_attachment_property
     
     // BEGIN map_mapview_property
     @IBOutlet weak var mapview: MKMapView?
@@ -32,7 +29,7 @@ class LocationAttachmentViewController: UIViewController, AttachmentViewer {
     
     // BEGIN map_viewWillAppear
     override func viewWillAppear(_ animated: Bool) {
-        if let data = attachmentFile?.regularFileContents {
+        if let data = locationAttachment?.regularFileContents {
             do {
                 guard let loadedData =
                     try JSONSerialization.jsonObject(with: data,

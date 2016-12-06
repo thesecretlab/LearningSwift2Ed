@@ -43,6 +43,10 @@ enum NoteDocumentFileNames : String {
     ///- The QuickLook thumbnail file, which goes in the QuickLook directory.
     case QuickLookThumbnail = "Thumbnail.png"
 // END document_file_names_quicklook
+
+// BEGIN location_file_name
+    case locationAttachment = "location.json"
+// END location_file_name
 }
 // END document_file_names
 

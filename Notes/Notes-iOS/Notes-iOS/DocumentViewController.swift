@@ -136,37 +136,6 @@ class DocumentViewController: UIViewController, UITextViewDelegate {
                                 using: respondToUndoOrRedo)
         
         // END document_vc_view_did_load_undo_support
-        
-        // BEGIN location_viewDidLoad
-        // checking if there is already a location file
-        var locationAlreadySaved = false
-        if let attachedFiles = self.document?.attachedFiles {
-            for attachment in attachedFiles {
-                if attachment.conformsToType(kUTTypeJSON) {
-                    locationAlreadySaved = true
-                    break
-                }
-            }
-        }
-        if !locationAlreadySaved {
-            // determining our location permission status
-            let status = CLLocationManager.authorizationStatus()
-            
-            if status != .denied && status != .restricted {
-                self.locationManager = CLLocationManager()
-                self.locationManager?.delegate = self
-                
-                if status == .notDetermined {
-                    self.locationManager?.requestWhenInUseAuthorization()
-                }
-                else {
-                    self.locationManager?.desiredAccuracy
-                        = kCLLocationAccuracyBest
-                    self.locationManager?.startUpdatingLocation()
-                }
-            }
-        }
-        // END location_viewDidLoad
     }
     // END document_vc_view_did_load
     
@@ -281,6 +250,29 @@ class DocumentViewController: UIViewController, UITextViewDelegate {
                         animated: true,
                         completion: nil)
                 }
+                
+                // BEGIN location_viewWillAppear
+                // checking if there isn't already a location file
+                if self.document?.locationWrapper == nil {
+                    // determining our location permission status
+                    let status = CLLocationManager.authorizationStatus()
+                    
+                    if status != .denied && status != .restricted {
+                        self.locationManager = CLLocationManager()
+                        self.locationManager?.delegate = self
+                        
+                        if status == .notDetermined {
+                            self.locationManager?.requestWhenInUseAuthorization()
+                        }
+                        else {
+                            self.locationManager?.desiredAccuracy
+                                = kCLLocationAccuracyBest
+                            self.locationManager?.startUpdatingLocation()
+                        }
+                    }
+                }
+                self.updateBarItems()
+                // END location_viewWillAppear
             }
         }
         
@@ -428,6 +420,32 @@ class DocumentViewController: UIViewController, UITextViewDelegate {
         }
         // END bar_items_undo_support
         
+        //BEGIN location_navbar
+        // the button to segue to the attachment view controller
+        let image = UIImage(named: "Position")
+        let showButton = UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(showLocation))
+        
+        // if there is already a location
+        if self.document?.locationWrapper != nil {
+            // we show the segue button
+            rightButtonItems.append(showButton)
+        } else {
+            // if we don't have permission or permission is denied
+            let status = CLLocationManager.authorizationStatus()
+            
+            if status == .denied || status == .restricted {
+                // we don't have permission
+                rightButtonItems.append(showButton)
+            } else {
+                // the activity indicator to show when determining location
+                let spinner = UIActivityIndicatorView(activityIndicatorStyle: .gray)
+                spinner.startAnimating()
+                let spinItem = UIBarButtonItem(customView: spinner)
+                rightButtonItems.append(spinItem)
+            }
+        }
+        // END location_navbar
+        
         self.navigationItem.rightBarButtonItems = rightButtonItems
         
     }
@@ -494,7 +512,13 @@ class DocumentViewController: UIViewController, UITextViewDelegate {
             }
         }
         // END prepare_for_segue_attachments
-        
+        // BEGIN location_prepare_for_segue
+        else if segue.identifier == "ShowLocationSegue" {
+            if let destination = segue.destination as? LocationAttachmentViewController {
+                destination.locationAttachment = self.document?.locationWrapper
+            }
+        }
+        // END location_prepare_for_segue
     }
     // END prepare_for_segue
 }
@@ -751,11 +775,6 @@ extension DocumentViewController : UICollectionViewDataSource,
                 segueName = "ShowAudioAttachment"
             }
             // END document_vc_didselectitem_attachments_audio
-            // BEGIN document_vc_didselectitem_attachments_location
-            else if attachment.conformsToType(kUTTypeJSON) {
-                segueName = "ShowLocationAttachment"
-            }
-            // END document_vc_didselectitem_attachments_location
 
             // BEGIN document_vc_didselectitem_attachments_movie
             else if attachment.conformsToType(kUTTypeMovie) {
@@ -1083,6 +1102,7 @@ extension DocumentViewController: CLLocationManagerDelegate {
             self.locationManager?.desiredAccuracy = kCLLocationAccuracyBest
             self.locationManager?.startUpdatingLocation()
         }
+        self.updateBarItems()
     }
     // END location_authorisation_changed
     
@@ -1103,18 +1123,21 @@ extension DocumentViewController: CLLocationManagerDelegate {
             let json = try JSONSerialization.data(withJSONObject: locationData,
                                     options: JSONSerialization.WritingOptions())
             
-            // saving the json as an attachment to the document
-            try self.document?.addAttachmentWithData(json, name: "location.json")
-            
-            // updating the attachment list view
-            self.attachmentsCollectionView.reloadData()
+            // saving our location to the document
+            self.document?.addLocation(withData: json)
         }
         catch let error as NSError
         {
             print("unable to save location: \(error)")
             self.locationManager?.startUpdatingLocation()
         }
-        
+        self.updateBarItems()
     }
     // END location_didUpdate
+    
+    // BEGIN location_selector
+    func showLocation() {
+        self.performSegue(withIdentifier: "ShowLocationSegue", sender: self)
+    }
+    // END location_selector
 }

@@ -628,13 +628,17 @@ extension DocumentViewController : UICollectionViewDataSource,
     // BEGIN add_attachment_sheet
     func addAttachment(_ sourceView : UIView) {
         
+        // BEGIN localization_localized_text
         let title = NSLocalizedString("Add attachment", comment: "Add attachment title")
+        // END localization_localized_text
         
+        // BEGIN localization
         let actionSheet
             = UIAlertController(title: title,
                                 message: nil,
                                 preferredStyle: UIAlertControllerStyle
                                     .actionSheet)
+        // END localization
 
         // BEGIN add_attachment_sheet_camera
         // If a camera is available to use...

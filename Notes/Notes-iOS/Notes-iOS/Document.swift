@@ -12,35 +12,6 @@ import UIKit
 import MobileCoreServices
 // END import_mobilecoreservices
 
-fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
-  switch (lhs, rhs) {
-  case let (l?, r?):
-    return l < r
-  case (nil, _?):
-    return true
-  default:
-    return false
-  }
-}
-
-fileprivate func > <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
-  switch (lhs, rhs) {
-  case let (l?, r?):
-    return l > r
-  default:
-    return rhs < lhs
-  }
-}
-
-fileprivate func >= <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
-  switch (lhs, rhs) {
-  case let (l?, r?):
-    return l >= r
-  default:
-    return !(lhs < rhs)
-  }
-}
-
 // Type info and thumbnails
 
 // BEGIN filewrapper_extension
@@ -390,7 +361,7 @@ class Document: UIDocument {
         UIColor.white.setFill()
         backgroundRect.fill()
         
-        if self.attachedFiles?.count >= 1 {
+        if (self.attachedFiles?.count)! >= 1 {
             // Render our text, and the first attachment
             let attachmentImage = self.attachedFiles?[0].thumbnailImage()
             

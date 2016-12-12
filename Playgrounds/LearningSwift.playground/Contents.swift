@@ -1018,7 +1018,7 @@ public class AccessControl {
 }
 // END access_control_class
 
-//BEGIN private_vs_fileprivate
+// BEGIN private_vs_fileprivate
 class AccessObject {
     func doAThing()
     {

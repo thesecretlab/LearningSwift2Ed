@@ -420,7 +420,7 @@ class DocumentViewController: UIViewController, UITextViewDelegate {
         }
         // END bar_items_undo_support
         
-        //BEGIN location_navbar
+        // BEGIN location_navbar
         // the button to segue to the attachment view controller
         let image = UIImage(named: "Position")
         let showButton = UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(showLocation))

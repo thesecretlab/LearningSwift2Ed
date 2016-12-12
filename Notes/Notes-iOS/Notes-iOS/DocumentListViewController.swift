@@ -204,7 +204,7 @@ class DocumentListViewController: UICollectionViewController {
         if self.traitCollection.forceTouchCapability == .available {
             self.registerForPreviewing(with: self, sourceView: self.collectionView!)
         }
-        //END peek_pop_register
+        // END peek_pop_register
         
     }
     // END doc_list_view_did_load
@@ -367,7 +367,7 @@ class DocumentListViewController: UICollectionViewController {
         
         
         // Get this object from the list of known files
-        let url = availableFiles[(indexPath as NSIndexPath).row]
+        let url = availableFiles[indexPath.row]
             
         // Get the display name
         var fileName : AnyObject?
@@ -682,7 +682,7 @@ class DocumentListViewController: UICollectionViewController {
         didSelectItemAt indexPath: IndexPath) {
         
         // Did we select a cell that has an item that is openable?
-        let selectedItem = availableFiles[(indexPath as NSIndexPath).row]
+        let selectedItem = availableFiles[indexPath.row]
             
         if itemIsOpenable(selectedItem) {
             self.performSegue(withIdentifier: "ShowDocument", sender: selectedItem)
@@ -720,17 +720,19 @@ class DocumentListViewController: UICollectionViewController {
 
 // BEGIN peek_pop_extension
 extension DocumentListViewController : UIViewControllerPreviewingDelegate {
-    func previewingContext(_ previewingContext: UIViewControllerPreviewing, viewControllerForLocation location: CGPoint) -> UIViewController? {
+    func previewingContext(_ previewingContext: UIViewControllerPreviewing,
+             viewControllerForLocation location: CGPoint) -> UIViewController? {
         
         // Determine which cell was tapped; if we can't, return nil to indicate that we 
         // can't offer a preview
-        guard let indexPath = self.collectionView?.indexPathForItem(at: location) else {
+        guard let indexPath =
+                      self.collectionView?.indexPathForItem(at: location) else {
             return nil
         }
         
         // Get the cell object for this location
         guard let cell = self.collectionView?.cellForItem(at: indexPath) else {
-            fatalError("We have an index path, but not a cell, for some reason?")
+            fatalError("We have an index path, but not a cell")
         }
         
         // Determine the document URL that this cell represents
@@ -740,7 +742,9 @@ extension DocumentListViewController : UIViewControllerPreviewingDelegate {
         previewingContext.sourceRect = cell.frame
         
         // Create a DocumentViewController for showing this file
-        guard let documentVC = self.storyboard?.instantiateViewController(withIdentifier: "DocumentViewController") as? DocumentViewController else {
+        guard let documentVC = self.storyboard?.instantiateViewController(
+                                withIdentifier: "DocumentViewController")
+                                               as? DocumentViewController else {
             fatalError("Expected to get a DocumentViewController here - make sure that the " +
                 "Document View Controller's storyboard identifier is set up correctly")
         }
@@ -755,16 +759,19 @@ extension DocumentListViewController : UIViewControllerPreviewingDelegate {
         return navigationVC
     }
     
-    func previewingContext(_ previewingContext: UIViewControllerPreviewing, commit viewControllerToCommit: UIViewController) {
+    func previewingContext(_ previewingContext: UIViewControllerPreviewing,
+                              commit viewControllerToCommit: UIViewController) {
         
         // The viewControllerToCommit is a navigation controller that contains a document view controller.
         // Ensure that this is the case.
-        guard let navigationVC = viewControllerToCommit as? UINavigationController else {
+        guard let navigationVC = viewControllerToCommit as?
+                                                UINavigationController else {
             fatalError("Expected the preview view controller to be a navigation controller")
         }
         
-        guard let documentVC = navigationVC.viewControllers.first as? DocumentViewController else {
-            fatalError("Expected the preview view controller to contain a document view controller")
+        guard let documentVC = navigationVC.viewControllers.first
+                                               as? DocumentViewController else {
+            fatalError("View controller is not a document view controller")
         }
         
         // Get the document view controller's URL

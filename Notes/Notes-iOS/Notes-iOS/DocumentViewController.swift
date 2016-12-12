@@ -423,7 +423,8 @@ class DocumentViewController: UIViewController, UITextViewDelegate {
         // BEGIN location_navbar
         // the button to segue to the attachment view controller
         let image = UIImage(named: "Position")
-        let showButton = UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(showLocation))
+        let showButton = UIBarButtonItem(image: image, style: .plain,
+                                  target: self, action: #selector(showLocation))
         
         // if there is already a location
         if self.document?.locationWrapper != nil {
@@ -485,7 +486,7 @@ class DocumentViewController: UIViewController, UITextViewDelegate {
             if let cell = sender as? UICollectionViewCell,
                 let indexPath =
                     self.attachmentsCollectionView?.indexPath(for: cell),
-                let attachment = self.document?.attachedFiles?[(indexPath as NSIndexPath).row] {
+                let attachment = self.document?.attachedFiles?[indexPath.row] {
                 
                 attachmentViewer.attachmentFile = attachment
             } else {
@@ -553,11 +554,11 @@ extension DocumentViewController : UICollectionViewDataSource,
         
         // Work out how many cells we need to display
         let totalNumberOfCells =
-            collectionView.numberOfItems(inSection: (indexPath as NSIndexPath).section)
+            collectionView.numberOfItems(inSection: indexPath.section)
         
         // Figure out if we're being asked to configure the Add cell,
         // or any other cell. If we're the last cell, it's the Add cell.
-        let isAddCell = ((indexPath as NSIndexPath).row == (totalNumberOfCells - 1))
+        let isAddCell = indexPath.row == (totalNumberOfCells - 1)
         
         // The place to store the cell. By making it 'let', we're ensuring
         // that we never accidentally fail to give it a value - the 
@@ -578,7 +579,7 @@ extension DocumentViewController : UICollectionViewDataSource,
                     for: indexPath) as! AttachmentCell
             
             // Get a thumbnail image for the attachment
-            let attachment = self.document?.attachedFiles?[(indexPath as NSIndexPath).row]
+            let attachment = self.document?.attachedFiles?[indexPath.row]
             var image = attachment?.thumbnailImage()
             
             // Give it to the cell
@@ -629,16 +630,20 @@ extension DocumentViewController : UICollectionViewDataSource,
     func addAttachment(_ sourceView : UIView) {
         
         // BEGIN localization_localized_text
-        let title = NSLocalizedString("Add attachment", comment: "Add attachment title")
+        //let title = NSLocalizedString("Add attachment", comment: "Add attachment title")
         // END localization_localized_text
         
-        // BEGIN localization
+        /*-
+        // BEGIN localization_unlocal
+        let title = "Add attachment"
+        // END localization_unlocal
+        -*/
+        
         let actionSheet
             = UIAlertController(title: title,
                                 message: nil,
                                 preferredStyle: UIAlertControllerStyle
                                     .actionSheet)
-        // END localization
 
         // BEGIN add_attachment_sheet_camera
         // If a camera is available to use...
@@ -938,7 +943,7 @@ extension DocumentViewController : AttachmentCellDelegate {
         }
         
         guard let attachment = self.document?
-            .attachedFiles?[(indexPath as NSIndexPath).row] else {
+            .attachedFiles?[indexPath.row] else {
             return
         }
         do {
@@ -1069,7 +1074,8 @@ extension DocumentViewController {
         })
         
         let doneButton = UIBarButtonItem(barButtonSystemItem:
-            UIBarButtonSystemItem.done, target: self, action: #selector(DocumentViewController.endEditMode))
+            UIBarButtonSystemItem.done, target: self,
+                        action: #selector(DocumentViewController.endEditMode))
         self.navigationItem.rightBarButtonItem = doneButton
         
     }
@@ -1101,7 +1107,8 @@ extension DocumentViewController: CLLocationManagerDelegate {
 // END location_extension
     
     // BEGIN location_authorisation_changed
-    func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
+    func locationManager(_ manager: CLLocationManager,
+                         didChangeAuthorization status: CLAuthorizationStatus) {
         if status == .authorizedWhenInUse {
             self.locationManager?.desiredAccuracy = kCLLocationAccuracyBest
             self.locationManager?.startUpdatingLocation()
@@ -1111,7 +1118,8 @@ extension DocumentViewController: CLLocationManagerDelegate {
     // END location_authorisation_changed
     
     // BEGIN location_didUpdate
-    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+    func locationManager(_ manager: CLLocationManager,
+                         didUpdateLocations locations: [CLLocation]) {
         self.locationManager?.stopUpdatingLocation()
         guard let location = locations.last else {
             return

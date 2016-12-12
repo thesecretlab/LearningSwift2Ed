@@ -949,7 +949,7 @@ aBlinkingThing = Lighthouse()
 
 // BEGIN extending_int
 extension Int {
-    var doubled : Int {
+    var double : Int {
         return self * 2
     }
     func multiplyWith(anotherNumber: Int) -> Int {
@@ -959,7 +959,7 @@ extension Int {
 // END extending_int
 
 // BEGIN using_int_extension
-2.doubled // = 4
+2.double // = 4
 4.multiplyWith(anotherNumber: 32) // = 128
 // END using_int_extension
 
@@ -1537,30 +1537,30 @@ default:
 /*
 // BEGIN enumeration_associated_values_1
 enum Weapon {
-    case Laser
-    case Missiles
+    case laser
+    case missiles
 }
 // END enumeration_associated_values_1
 */
 
 // BEGIN enumeration_associated_values_2
 enum Weapon {
-    case Laser(powerLevel: Int)
-    case Missiles(range: Int)
+    case laser(powerLevel: Int)
+    case missiles(range: Int)
 }
 // END enumeration_associated_values_2
 
 // BEGIN enumeration_associated_values_usage
-let spaceLaser = Weapon.Laser(powerLevel: 5)
+let spaceLaser = Weapon.laser(powerLevel: 5)
 // END enumeration_associated_values_usage
 
 // BEGIN enumeration_associated_values_usage_switch
 switch spaceLaser {
-case .Laser(powerLevel: 0...10 ):
+case .laser(powerLevel: 0...10 ):
     print("It's a laser with power from 0 to 10!")
-case .Laser:
+case .laser:
     print("It's a laser!")
-case .Missiles(let range):
+case .missiles(let range):
     print("It's a missile with range \(range)!")
 }
 // Prints "It's a laser with power from 0 to 10!"
@@ -1659,13 +1659,13 @@ let p = Point(x: 2, y: 3)
 // BEGIN error_enum
 enum BankError : Error {
     // Not enough money in the account
-    case NotEnoughFunds
+    case notEnoughFunds
     
     // Can't create an account with negative money
-    case CannotBeginWithNegativeFunds
+    case cannotBeginWithNegativeFunds
     
     // Can't make a negative deposit or withdrawal
-    case CannotMakeNegativeTransaction(amount:Float)
+    case cannotMakeNegativeTransaction(amount:Float)
 }
 // END error_enum
 
@@ -1683,7 +1683,7 @@ class BankAccount {
         
         // Ensure that we have a non-negative amount of money
         guard amount > 0 else {
-            throw BankError.CannotBeginWithNegativeFunds
+            throw BankError.cannotBeginWithNegativeFunds
         }
         balance = amount
     }
@@ -1693,7 +1693,7 @@ class BankAccount {
         
         // Ensure that we're trying to deposit a non-negative amount
         guard amount > 0 else {
-            throw BankError.CannotMakeNegativeTransaction(amount: amount)
+            throw BankError.cannotMakeNegativeTransaction(amount: amount)
         }
         balance += amount
     }
@@ -1703,12 +1703,12 @@ class BankAccount {
         
         // Ensure that we're trying to deposit a non-negative amount
         guard amount > 0 else {
-            throw BankError.CannotMakeNegativeTransaction(amount: amount)
+            throw BankError.cannotMakeNegativeTransaction(amount: amount)
         }
         
         // Ensure that we have enough to withdraw this amount
         guard balance >= amount else {
-            throw BankError.NotEnoughFunds
+            throw BankError.notEnoughFunds
         }
         
         balance -= amount
@@ -1728,11 +1728,11 @@ do {
     
     // Catch any BankError that was thrown
     switch (error) {
-    case .NotEnoughFunds:
+    case .notEnoughFunds:
         print("Not enough funds in account!")
-    case .CannotBeginWithNegativeFunds:
+    case .cannotBeginWithNegativeFunds:
         print("Tried to start an account with negative money!")
-    case .CannotMakeNegativeTransaction(let amount):
+    case .cannotMakeNegativeTransaction(let amount):
         print("Tried to do a transaction with a negative amount of \(amount)!")
     }
     

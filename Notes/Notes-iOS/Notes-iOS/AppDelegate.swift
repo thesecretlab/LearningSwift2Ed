@@ -299,13 +299,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         
         // Ensure that the root view controller is a navigation controller
-        guard let navigationController = self.window?.rootViewController as? UINavigationController else {
-            fatalError("The root view controller is not a navigation controller!")
+        guard let navigationController =
+               self.window?.rootViewController as? UINavigationController else {
+            fatalError("The root view controller is not a navigationcontroller")
         }
         
         // Ensure that the navigation controller's root view controller is the Document List
-        guard let documentList = navigationController.viewControllers.first as? DocumentListViewController else {
-            fatalError("The navigation controller's first view controller is not a DocumentListViewController!")
+        guard let documentList = navigationController.viewControllers.first
+                                           as? DocumentListViewController else {
+            fatalError("first view controller isn't DocumentListViewController")
         }
         
         // Move back to the root view controller

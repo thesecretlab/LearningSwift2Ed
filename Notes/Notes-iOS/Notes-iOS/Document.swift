@@ -145,7 +145,8 @@ class Document: UIDocument {
         
         // BEGIN location_attachment_save
         // checking if there is already a location saved
-        if self.documentFileWrapper.fileWrappers?[NoteDocumentFileNames.locationAttachment.rawValue] == nil {
+        let rawLocationVal = NoteDocumentFileNames.locationAttachment.rawValue
+        if self.documentFileWrapper.fileWrappers?[rawLocationVal] == nil {
             // saving the location if there is one
             if let location = self.locationWrapper {
                 self.documentFileWrapper.addFileWrapper(location)
@@ -187,7 +188,8 @@ class Document: UIDocument {
         
         // BEGIN location_attachment_load
         // opening the location filewrapper
-        self.locationWrapper = fileWrapper.fileWrappers?[NoteDocumentFileNames.locationAttachment.rawValue]
+        let rawLocationVal = NoteDocumentFileNames.locationAttachment.rawValue
+        self.locationWrapper = fileWrapper.fileWrappers?[rawLocationVal]
         // END location_attachment_load
         
     }
@@ -365,7 +367,8 @@ class Document: UIDocument {
             // Render our text, and the first attachment
             let attachmentImage = self.attachedFiles?[0].thumbnailImage()
             
-            let result = entireImageRect.divided(atDistance: entireImageRect.size.height / 2.0, from: CGRectEdge.minYEdge)
+            let result = entireImageRect.divided(atDistance:
+                   entireImageRect.size.height / 2.0, from: CGRectEdge.minYEdge)
             
             self.text.draw(in: result.slice)
             attachmentImage?.draw(in: result.remainder)

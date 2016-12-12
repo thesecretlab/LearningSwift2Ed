@@ -352,12 +352,7 @@ extension Document : AddAttachmentDelegate {
 
 // BEGIN collectionview_dragndrop
 extension Document : NSCollectionViewDelegate {
-    
-    /*
-    public func collectionView(_ collectionView: NSCollectionView,
-                               validateDrop draggingInfo: NSDraggingInfo,
-                               proposedIndexPath proposedDropIndexPath: AutoreleasingUnsafeMutablePointer<NSIndexPath>,
-                               dropOperation proposedDropOperation: UnsafeMutablePointer<NSCollectionViewDropOperation>) -> NSDragOperation*/
+
     
     func collectionView(_ collectionView: NSCollectionView,
         validateDrop draggingInfo: NSDraggingInfo,
@@ -439,7 +434,7 @@ extension Document : NSCollectionViewDataSource {
         -> NSCollectionViewItem {
             
         // Get the attachment that this cell should represent
-        let attachment = self.attachedFiles![(indexPath as NSIndexPath).item]
+        let attachment = self.attachedFiles![indexPath.item]
         
         // Get the cell itself
         let item = collectionView
@@ -480,62 +475,21 @@ extension Document : AttachmentCellDelegate {
         // First, ensure that the document is saved
         self.autosave(withImplicitCancellability: false,
                                         completionHandler: { (error) -> Void in
+            var url = self.fileURL
+            url = url?.appendingPathComponent(
+                NoteDocumentFileNames.AttachmentsDirectory.rawValue,
+                isDirectory: true)
             
-            // BEGIN document_open_selected_attachment_location
-            // If this attachment indicates that it's JSON, and we're able
-            // to get JSON data out of it...
-            if attachment.conformsToType(kUTTypeJSON),
-                let data = attachment.regularFileContents,
-                let json = try? JSONSerialization
-                    .jsonObject(with: data, options: JSONSerialization.ReadingOptions())
-                    as? NSDictionary  {
-                
-                        // And if that JSON data includes lat and long entries...
-                
-                        if let lat = json?["lat"] as? CLLocationDegrees,
-                            let lon = json?["long"] as? CLLocationDegrees {
-                            
-                            // Build a coordinate from them
-                            let coordinate =
-                                CLLocationCoordinate2D(latitude: lat,
-                                    longitude: lon)
-                            
-                            // Build a placemark with that coordinate
-                            let placemark =
-                                MKPlacemark(coordinate: coordinate,
-                                    addressDictionary: nil)
-                            
-                            // Build a map item from that placemark...
-                            let mapItem = MKMapItem(placemark: placemark)
-                            
-                            // And open the map item in the Maps app!
-                            mapItem.openInMaps(launchOptions: nil)
-                            
-                        }
-            } else {
-                // END document_open_selected_attachment_location
-                
-                var url = self.fileURL
-                url = url?.appendingPathComponent(
-                    NoteDocumentFileNames.AttachmentsDirectory.rawValue,
-                        isDirectory: true)
-                
-                url = url?
-                    .appendingPathComponent(attachment.preferredFilename!)
-                
-                if let path = url?.path {
-                    NSWorkspace.shared().openFile(
-                        path, withApplication: nil, andDeactivate: true)
-                }
-                
-                
-                // BEGIN document_open_selected_attachment_location
+            url = url?
+                .appendingPathComponent(attachment.preferredFilename!)
+            
+            if let path = url?.path {
+                NSWorkspace.shared().openFile(
+                    path, withApplication: nil, andDeactivate: true)
             }
-            // END document_open_selected_attachment_location
         })
         
     }
-
 }
 // END document_open_selected_attachment
 
@@ -597,7 +551,8 @@ extension Document {
             // Render our text, and the first attachment
             let attachmentImage = self.attachedFiles?[0].thumbnailImage
             
-            let result = entireImageRect.divided(atDistance: entireImageRect.size.height / 2.0, from: CGRectEdge.minYEdge)
+            let result = entireImageRect.divided(atDistance:
+                   entireImageRect.size.height / 2.0, from: CGRectEdge.minYEdge)
             
             self.text.draw(in: result.slice)
             

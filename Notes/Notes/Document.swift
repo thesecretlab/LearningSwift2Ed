@@ -274,13 +274,15 @@ class Document: NSDocument {
     var popover : NSPopover?
     // END popover
     
-    // BEGIN add_location_method
-    
+    // BEGIN location_manager_variables
     var locationManager = CLLocationManager()
+    // END location_manager_variables
     
     @IBOutlet var locationSpinner : NSProgressIndicator!
     @IBOutlet var locationButton : NSButton!
     
+    
+    // BEGIN check_location_method
     func checkForLocation() {
         
         // Check to see if we need to add a location
@@ -318,7 +320,7 @@ class Document: NSDocument {
         }
         
     }
-    // END add_location_method
+    // END check_location_method
     
     // BEGIN show_location_method
     @IBAction func showLocation(_ sender : NSButton) {

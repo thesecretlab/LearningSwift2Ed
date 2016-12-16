@@ -84,6 +84,10 @@ class Document: NSDocument {
     var documentFileWrapper = FileWrapper(directoryWithFileWrappers: [:])
     // END document_file_wrapper
     
+    // BEGIN location_property
+    var location : CLLocationCoordinate2D?
+    // END location_property
+    
     @IBOutlet var attachmentsList : NSCollectionView!
     
     // Attachments
@@ -147,6 +151,12 @@ class Document: NSDocument {
         NSWindowController) {
         
         self.attachmentsList.register(forDraggedTypes: [NSURLPboardType])
+        
+        // BEGIN did_load_nib_check_location
+        self.checkForLocation()
+        // END did_load_nib_check_location
+        
+        
     }
     // END did_load_nib
     
@@ -178,6 +188,7 @@ class Document: NSDocument {
         self.documentFileWrapper = fileWrapper
         
         self.text = documentText
+        
         
     }
     // END read_from_file_wrapper
@@ -231,6 +242,22 @@ class Document: NSDocument {
         self.documentFileWrapper.addFileWrapper(quickLookFolderFileWrapper)
         // END file_wrapper_of_type_quicklook
         
+        // BEGIN file_wrapper_of_type_location
+        if let oldLocationFileWrapper = self.documentFileWrapper
+            .fileWrappers?[NoteDocumentFileNames.locationAttachment.rawValue] {
+            self.documentFileWrapper.removeFileWrapper(oldLocationFileWrapper)
+        }
+        
+        if let location = self.location {
+            
+            let locationDictionary = ["lat":location.latitude, "long": location.longitude]
+            if let locationData = try? JSONSerialization.data(withJSONObject: locationDictionary, options: []) {
+                // Save the location data into the file
+                self.documentFileWrapper.addRegularFile(withContents: locationData, preferredFilename: NoteDocumentFileNames.locationAttachment.rawValue)
+            }
+        }
+        // END file_wrapper_of_type_location
+        
         // Save the text data into the file
         self.documentFileWrapper.addRegularFile(
             withContents: textRTFData,
@@ -246,6 +273,71 @@ class Document: NSDocument {
     // BEGIN popover
     var popover : NSPopover?
     // END popover
+    
+    // BEGIN add_location_method
+    
+    var locationManager = CLLocationManager()
+    
+    @IBOutlet var locationSpinner : NSProgressIndicator!
+    @IBOutlet var locationButton : NSButton!
+    
+    func checkForLocation() {
+        
+        // Check to see if we need to add a location
+        if let locationRawData = self.documentFileWrapper.fileWrappers?[NoteDocumentFileNames.locationAttachment.rawValue]?.regularFileContents,
+            let locationData = try? JSONSerialization.jsonObject(with: locationRawData, options: []) as? [String:Double],
+            let latitude = locationData?["lat"],
+            let longitude = locationData?["long"] {
+            self.location = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+            
+            locationButton.isHidden = false
+            locationSpinner.isHidden = true
+            
+            
+            return
+        }
+        
+        switch CLLocationManager.authorizationStatus() {
+            
+        // If we're authorized, or we haven't yet gotten permission, start checking
+        case .notDetermined:
+            fallthrough
+        case .authorized:
+            locationButton.isHidden = true
+            locationSpinner.isHidden = false
+            locationSpinner.startAnimation(nil)
+            
+            locationManager.delegate = self
+            
+            locationManager.startUpdatingLocation()
+        
+        // If it's any other state (i.e. denied or restricted, that is not available), hide all UI
+        default:
+            locationButton.isHidden = true
+            locationSpinner.isHidden = true
+        }
+        
+    }
+    // END add_location_method
+    
+    // BEGIN show_location_method
+    @IBAction func showLocation(_ sender : NSButton) {
+        
+        guard let location = self.location else {
+            NSLog("Attempted to show the location, but there isn't one in this document!")
+            return
+        }
+        
+        // Build a placemark with that coordinate
+        let placemark =
+            MKPlacemark(coordinate: location,
+                        addressDictionary: nil)
+        // Build a map item from that placemark...
+        let mapItem = MKMapItem(placemark: placemark)
+        // And open the map item in the Maps app!
+        mapItem.openInMaps(launchOptions: nil)
+    }
+    // END show_location_method
 
 
     // BEGIN add_attachment_method
@@ -576,3 +668,31 @@ extension Document {
     // END document_icon_data
 }
 
+// Location manager delegate
+// BEGIN location_delegate_methods
+extension Document : CLLocationManagerDelegate {
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        
+        guard let location = locations.first else {
+            NSLog("Received didUpdateLocations, but received no locations in the array?")
+            return
+        }
+        
+        self.location = location.coordinate
+        
+        self.locationSpinner.isHidden = true
+        self.locationButton.isHidden = false
+        
+        manager.stopUpdatingLocation()
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        let alert = NSAlert(error: error)
+        
+        alert.runModal()
+        
+        self.locationSpinner.isHidden = true
+        self.locationButton.isHidden = true
+    }
+}
+// END location_delegate_methods

@@ -1,13 +1,16 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="9531" systemVersion="15C50" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="11542" systemVersion="16B2555" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="9531"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="11542"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="Document" customModule="Notes" customModuleProvider="target">
             <connections>
                 <outlet property="attachmentsList" destination="8DL-U4-yfP" id="up8-0e-z3T"/>
+                <outlet property="locationButton" destination="ANg-gh-3ZO" id="WFe-OP-Qjz"/>
+                <outlet property="locationSpinner" destination="Jr3-cl-IyC" id="wEj-2g-fzh"/>
                 <outlet property="window" destination="xOd-HO-29H" id="JIz-fz-R2o"/>
             </connections>
         </customObject>
@@ -27,18 +30,16 @@
                     <scrollView horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="cIl-ML-La7">
                         <rect key="frame" x="20" y="128" width="467" height="265"/>
                         <clipView key="contentView" id="Mjz-Hx-Awm">
-                            <rect key="frame" x="1" y="1" width="465" height="263"/>
+                            <rect key="frame" x="1" y="1" width="450" height="263"/>
                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                             <subviews>
-                                <textView importsGraphics="NO" findStyle="panel" continuousSpellChecking="YES" allowsUndo="YES" usesRuler="YES" usesFontPanel="YES" verticallyResizable="YES" allowsNonContiguousLayout="YES" quoteSubstitution="YES" linkDetection="YES" dataDetection="YES" dashSubstitution="YES" spellingCorrection="YES" smartInsertDelete="YES" id="mM8-tM-reW">
-                                    <rect key="frame" x="0.0" y="0.0" width="465" height="263"/>
+                                <textView importsGraphics="NO" usesFontPanel="YES" findStyle="panel" continuousSpellChecking="YES" allowsUndo="YES" usesRuler="YES" allowsNonContiguousLayout="YES" quoteSubstitution="YES" linkDetection="YES" dataDetection="YES" dashSubstitution="YES" spellingCorrection="YES" smartInsertDelete="YES" id="mM8-tM-reW">
+                                    <rect key="frame" x="0.0" y="0.0" width="450" height="263"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                    <size key="minSize" width="465" height="263"/>
+                                    <size key="minSize" width="450" height="263"/>
                                     <size key="maxSize" width="467" height="10000000"/>
                                     <color key="insertionPointColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
-                                    <size key="minSize" width="465" height="263"/>
-                                    <size key="maxSize" width="467" height="10000000"/>
                                     <connections>
                                         <binding destination="-2" name="attributedString" keyPath="self.text" id="Spf-Zz-eUQ"/>
                                     </connections>
@@ -51,7 +52,7 @@
                             <autoresizingMask key="autoresizingMask"/>
                         </scroller>
                         <scroller key="verticalScroller" verticalHuggingPriority="750" doubleValue="1" horizontal="NO" id="6LW-82-j8k">
-                            <rect key="frame" x="450" y="1" width="16" height="263"/>
+                            <rect key="frame" x="451" y="1" width="15" height="263"/>
                             <autoresizingMask key="autoresizingMask"/>
                         </scroller>
                     </scrollView>
@@ -101,15 +102,36 @@
                             <action selector="addAttachment:" target="-2" id="7h4-H6-iV2"/>
                         </connections>
                     </button>
+                    <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="ANg-gh-3ZO">
+                        <rect key="frame" x="455" y="87" width="32" height="34"/>
+                        <constraints>
+                            <constraint firstAttribute="height" constant="32" id="mCU-va-WbP"/>
+                            <constraint firstAttribute="width" constant="32" id="xc6-4u-ehC"/>
+                        </constraints>
+                        <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" image="Location" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Rqq-4T-IAj">
+                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="system"/>
+                        </buttonCell>
+                        <connections>
+                            <action selector="showLocation:" target="-2" id="Z6X-hY-PF2"/>
+                        </connections>
+                    </button>
+                    <progressIndicator wantsLayer="YES" horizontalHuggingPriority="750" verticalHuggingPriority="750" maxValue="100" bezeled="NO" indeterminate="YES" controlSize="small" style="spinning" translatesAutoresizingMaskIntoConstraints="NO" id="Jr3-cl-IyC">
+                        <rect key="frame" x="463" y="96" width="16" height="16"/>
+                    </progressIndicator>
                 </subviews>
                 <constraints>
                     <constraint firstItem="UwK-tT-pey" firstAttribute="top" secondItem="cIl-ML-La7" secondAttribute="bottom" constant="8" symbolic="YES" id="0FG-X3-XfL"/>
+                    <constraint firstItem="Jr3-cl-IyC" firstAttribute="centerY" secondItem="ANg-gh-3ZO" secondAttribute="centerY" id="3ke-kn-C69"/>
+                    <constraint firstItem="Kxz-di-0U5" firstAttribute="top" secondItem="ANg-gh-3ZO" secondAttribute="bottom" constant="37" id="8dk-Jx-t0J"/>
                     <constraint firstItem="cIl-ML-La7" firstAttribute="leading" secondItem="gIp-Ho-8D9" secondAttribute="leading" constant="20" symbolic="YES" id="Ah4-v8-ggv"/>
                     <constraint firstItem="Kxz-di-0U5" firstAttribute="leading" secondItem="UwK-tT-pey" secondAttribute="trailing" constant="8" id="I5Q-bV-Aea"/>
                     <constraint firstItem="cIl-ML-La7" firstAttribute="top" secondItem="gIp-Ho-8D9" secondAttribute="top" constant="20" symbolic="YES" id="L4j-qN-BY6"/>
                     <constraint firstAttribute="bottom" secondItem="Kxz-di-0U5" secondAttribute="bottom" constant="20" id="VEb-s7-Mj3"/>
                     <constraint firstItem="UwK-tT-pey" firstAttribute="leading" secondItem="cIl-ML-La7" secondAttribute="leading" id="ggr-TX-YNx"/>
                     <constraint firstAttribute="trailing" secondItem="cIl-ML-La7" secondAttribute="trailing" constant="20" symbolic="YES" id="ig3-UY-7Fv"/>
+                    <constraint firstItem="Jr3-cl-IyC" firstAttribute="centerX" secondItem="ANg-gh-3ZO" secondAttribute="centerX" id="kOe-rq-KWL"/>
+                    <constraint firstAttribute="trailing" secondItem="ANg-gh-3ZO" secondAttribute="trailing" constant="20" id="tqo-2w-kpB"/>
                     <constraint firstAttribute="trailing" secondItem="Kxz-di-0U5" secondAttribute="trailing" constant="20" id="yxG-w2-oSe"/>
                     <constraint firstAttribute="bottom" secondItem="UwK-tT-pey" secondAttribute="bottom" constant="20" symbolic="YES" id="zdH-Ku-1O4"/>
                 </constraints>
@@ -121,6 +143,7 @@
         </window>
     </objects>
     <resources>
+        <image name="Location" width="88" height="88"/>
         <image name="NSAddTemplate" width="11" height="11"/>
     </resources>
 </document>

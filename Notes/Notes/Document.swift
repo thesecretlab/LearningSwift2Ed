@@ -7,9 +7,12 @@
 //
 
 import Cocoa
+
+// BEGIN mac_location_imports
 import MapKit
-import AddressBook
 import CoreLocation
+// END mac_location_imports
+import AddressBook
 import QuickLook
 fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
   switch (lhs, rhs) {
@@ -84,9 +87,9 @@ class Document: NSDocument {
     var documentFileWrapper = FileWrapper(directoryWithFileWrappers: [:])
     // END document_file_wrapper
     
-    // BEGIN location_property
+    // BEGIN mac_location_property
     var location : CLLocationCoordinate2D?
-    // END location_property
+    // END mac_location_property
     
     @IBOutlet var attachmentsList : NSCollectionView!
     
@@ -274,9 +277,9 @@ class Document: NSDocument {
     var popover : NSPopover?
     // END popover
     
-    // BEGIN location_manager_variables
+    // BEGIN mac_location_manager_variables
     var locationManager = CLLocationManager()
-    // END location_manager_variables
+    // END mac_location_manager_variables
     
     @IBOutlet var locationSpinner : NSProgressIndicator!
     @IBOutlet var locationButton : NSButton!
@@ -671,7 +674,7 @@ extension Document {
 }
 
 // Location manager delegate
-// BEGIN location_delegate_methods
+// BEGIN mac_location_delegate_methods
 extension Document : CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         
@@ -697,4 +700,4 @@ extension Document : CLLocationManagerDelegate {
         self.locationButton.isHidden = true
     }
 }
-// END location_delegate_methods
+// END mac_location_delegate_methods

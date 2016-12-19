@@ -24,6 +24,8 @@ class NoteListInterfaceController: WKInterfaceController {
 
     @IBOutlet var noteListTable: WKInterfaceTable!
     
+    var displayedNotes : [SessionManager.NoteInfo] = []
+    
     // BEGIN watch_handle_user_activity
     override func handleUserActivity(_ userInfo: [AnyHashable: Any]?) {
         if userInfo?["editing"] as? Bool == true {
@@ -62,6 +64,12 @@ class NoteListInterfaceController: WKInterfaceController {
     
     // BEGIN watch_update_list_with_notes
     func updateListWithNotes(_ notes: [SessionManager.NoteInfo]) {
+        
+        // Have the notes changed? Don't do anything if not.
+        if notes == self.displayedNotes {
+            return
+        }
+        
         self.noteListTable.setNumberOfRows(notes.count, withRowType: "NoteRow")
         
         for (i, note) in notes.enumerated() {
@@ -69,20 +77,18 @@ class NoteListInterfaceController: WKInterfaceController {
                 row.nameLabel.setText(note.name)
             }
         }
+        
+        self.displayedNotes = notes
     }
     // END watch_update_list_with_notes
     
-    // BEGIN watch_list_awake
-    override func awake(withContext context: Any?) {
-        super.awake(withContext: context)
-        
-        // Configure interface objects here.
-        
+    // BEGIN watch_list_activate
+    override func willActivate() {
         SessionManager.sharedSession.updateList() { notes, error in
             self.updateListWithNotes(notes)
         }
     }
-    // END watch_list_awake
+    // END watch_list_activate
     
     // BEGIN watch_list_context_for_segue
     override func contextForSegue(withIdentifier segueIdentifier: String,

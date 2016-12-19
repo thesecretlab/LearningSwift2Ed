@@ -19,19 +19,20 @@ let NotesApplicationDidRegisterUserNotificationSettings
 
 // BEGIN ios_watch_wcsessiondelegate
 extension AppDelegate : WCSessionDelegate {
-    @available(iOS 9.3, *)
+    
+    public func session(_ session: WCSession,
+                        activationDidCompleteWith
+                            activationState: WCSessionActivationState,
+                        error: Error?) {
+        NSLog("Watch session is now in activation state \(activationState)")
+    }
+    
     public func sessionDidDeactivate(_ session: WCSession) {
-        
+        NSLog("Watch session deactivated")
     }
     
-    @available(iOS 9.3, *)
-    public func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
-        
-    }
-    
-    @available(iOS 9.3, *)
     public func sessionDidBecomeInactive(_ session: WCSession) {
-        
+        NSLog("Watch session is now inactive")
     }
     
     
@@ -76,7 +77,8 @@ extension AppDelegate : WCSessionDelegate {
     func handleCreateNote(_ text: String,
          replyHandler: @escaping ([String:Any]) -> Void) {
         
-        let documentName = "Document \(arc4random()) from Watch.note"
+        let documentDate = DocumentListViewController.documentNameDateFormatter.string(from: Date())
+        let documentName = "Document \(documentDate) from Watch.note"
         
         // Determine where the file should be saved locally 
         // (before moving to iCloud)
@@ -91,7 +93,8 @@ extension AppDelegate : WCSessionDelegate {
             .appendingPathComponent(documentName)
         
         
-        guard let ubiquitousDocumentsDirectoryURL = FileManager.default.url(forUbiquityContainerIdentifier: nil)?
+        guard let ubiquitousDocumentsDirectoryURL =
+            FileManager.default.url(forUbiquityContainerIdentifier: nil)?
             .appendingPathComponent("Documents") else {
                 self.handleListAllNotes(replyHandler)
                 return
@@ -228,11 +231,15 @@ extension AppDelegate : WCSessionDelegate {
                 return
             }
             
+            // Extract the plain, non-attributed text from the document
+            let text = document.text.string
+            
+            // Build the reply with this response
             let reply = [
-                WatchMessageContentTextKey: document.text.string
+                WatchMessageContentTextKey: text
             ]
             
-            // Close; don't provide a completion handler, because
+            // Close the document; don't provide a completion handler, because
             // we've not making changes and therefore don't care
             // if a save succeeds or not
             document.close(completionHandler: nil)

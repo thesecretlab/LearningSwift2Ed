@@ -274,7 +274,7 @@ class DocumentListViewController: UICollectionViewController {
     }
     // END document_list_editing
     
-    lazy var documentNameDateFormatter: DateFormatter = {
+    static var documentNameDateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "yy-mm-dd hh-MM-ss"
         return formatter
@@ -614,7 +614,7 @@ class DocumentListViewController: UICollectionViewController {
     func createDocument() {
         
         // Create a unique name for this new document by adding the date
-        let documentDate = documentNameDateFormatter.string(from: Date())
+        let documentDate = DocumentListViewController.documentNameDateFormatter.string(from: Date())
         let documentName = "Document \(documentDate).note"
         
         // Work out where we're going to store it, temporarily

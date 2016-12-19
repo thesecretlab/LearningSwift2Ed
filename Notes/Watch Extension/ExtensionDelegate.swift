@@ -18,7 +18,7 @@ class SessionManager : NSObject, WCSessionDelegate {
     
     
     // BEGIN watch_session_manager_noteinfo
-    struct NoteInfo {
+    struct NoteInfo : Equatable {
         var name : String
         var URL : Foundation.URL?
         
@@ -34,6 +34,10 @@ class SessionManager : NSObject, WCSessionDelegate {
                 self.URL = Foundation.URL(string: URLString)
             }
             
+        }
+        
+        static func == (lhs: NoteInfo, rhs: NoteInfo) -> Bool {
+            return lhs.name == rhs.name && lhs.URL == rhs.URL
         }
     }
     // END watch_session_manager_noteinfo
@@ -57,13 +61,49 @@ class SessionManager : NSObject, WCSessionDelegate {
     }
     // END watch_session_manager_singleton_init
     
-    @available(watchOSApplicationExtension 2.2, *)
+    // BEGIN watch_session_manager_activationdidcomplete
     func session(_ session: WCSession,
                  activationDidCompleteWith activationState: WCSessionActivationState,
                  error: Error?) {
-        // Session activated.
         
+        // Either the session was activated, or error != nil.
+        // Call each task, passing the current value of error.
+        for task in deferredTasks {
+            task(error)
+        }
+        
+        // Clear the list.
+        deferredTasks = []
+    
     }
+    // END watch_session_manager_activationdidcomplete
+    
+    // BEGIN watch_session_manager_deferred_tasks_variables
+    // To save us some typing, we'll define a type called
+    // 'DeferredSessionTask', which is a closure that accepts an 
+    // optional error and returns nothing
+    typealias DeferredSessionTask = (Error?) -> Void
+    
+    // The 'deferredTasks' array is a list of all tasks that are 
+    // waiting for the session to activate
+    var deferredTasks : [DeferredSessionTask] = []
+    // END watch_session_manager_deferred_tasks_variables
+    
+    // BEGIN watch_session_manager_deferred_tasks_method
+    // Runs a closure when the session becomes active. If the session is
+    // already active, the closure is run immediately.
+    func runTaskWhenSessionActive(completionBlock: @escaping DeferredSessionTask) {
+        
+        // If the session is already active, run the block immediately with no error
+        if session.activationState == .activated {
+            completionBlock(nil)
+        } else {
+            // Otherwise, add this task to the list, and request that the session activate
+            deferredTasks.append(completionBlock)
+            session.activate()
+        }
+    }
+    // END watch_session_manager_deferred_tasks_method
 
     
     // BEGIN watch_session_manager_create_note
@@ -75,24 +115,35 @@ class SessionManager : NSObject, WCSessionDelegate {
             WatchMessageContentTextKey : text
         ]
         
-        session.sendMessage(message, replyHandler: {
-            reply in
+        self.runTaskWhenSessionActive { (error) in
             
-            self.updateLocalNoteListWithReply(reply)
+            if error != nil {
+                completionHandler([], error)
+                return
+            }
             
-            completionHandler(self.notes, nil)
-            
-        }, errorHandler: {
-            error in
-            
-            completionHandler([], error)
-        })
+            self.session.sendMessage(message, replyHandler: {
+                reply in
+                
+                self.updateLocalNoteListWithReply(reply)
+                
+                completionHandler(self.notes, nil)
+                
+            }, errorHandler: {
+                error in
+                
+                completionHandler([], error)
+            })
+        }
+        
+        
     }
     // END watch_session_manager_create_note
     
     // BEGIN watch_session_manager_update_local_note_list
     func updateLocalNoteListWithReply(_ reply:[String:Any]) {
         
+        // Did we receive a dictionary in the reply?
         if let noteList = reply[WatchMessageContentListKey]
             as? [[String:AnyObject]] {
             
@@ -102,7 +153,6 @@ class SessionManager : NSObject, WCSessionDelegate {
             })
             
         }
-        print("Loaded \(self.notes.count) notes")
     }
     // END watch_session_manager_update_local_note_list
     
@@ -113,18 +163,28 @@ class SessionManager : NSObject, WCSessionDelegate {
             WatchMessageTypeKey : WatchMessageTypeListAllNotesKey
         ]
         
-        session.sendMessage(message, replyHandler: {
-            reply in
+        self.runTaskWhenSessionActive { (error) in
             
-            self.updateLocalNoteListWithReply(reply as [String : AnyObject])
+            if error != nil {
+                completionHandler([], error as NSError?)
+                return
+            }
             
-            completionHandler(self.notes, nil)
-            
-        }, errorHandler: { error in
-            print("Error! \(error)")
-            completionHandler([], error as NSError?)
+            self.session.sendMessage(message, replyHandler: {
+                reply in
                 
-        })
+                self.updateLocalNoteListWithReply(reply as [String : AnyObject])
+                
+                completionHandler(self.notes, nil)
+                
+            }, errorHandler: { error in
+                print("Error! \(error)")
+                completionHandler([], error as NSError?)
+                
+            })
+        }
+        
+        
     }
     // END watch_session_manager_update_list
     
@@ -136,16 +196,25 @@ class SessionManager : NSObject, WCSessionDelegate {
             WatchMessageContentURLKey: noteURL.absoluteString
         ]
         
-        session.sendMessage(message, replyHandler: {
-            reply in
+        self.runTaskWhenSessionActive { (error) in
+            if error != nil {
+                completionHandler(nil, error)
+                return
+            }
             
-            let text = reply[WatchMessageContentTextKey] as? String
-            
-            completionHandler(text, nil)
-        },
-        errorHandler: { error in
-            completionHandler(nil, error)
-        })
+            self.session.sendMessage(message, replyHandler: {
+                reply in
+                
+                let text = reply[WatchMessageContentTextKey] as? String
+                
+                completionHandler(text, nil)
+            },
+                                errorHandler: { error in
+                                    completionHandler(nil, error)
+            })
+        }
+        
+        
         
     }
     // END watch_session_manager_load_note

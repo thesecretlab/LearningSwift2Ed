@@ -630,7 +630,7 @@ extension DocumentViewController : UICollectionViewDataSource,
     func addAttachment(_ sourceView : UIView) {
         
         // BEGIN localization_localized_text
-        //let title = NSLocalizedString("Add attachment", comment: "Add attachment title")
+        let title = NSLocalizedString("Add attachment", comment: "Add attachment title")
         // END localization_localized_text
         
         /*-

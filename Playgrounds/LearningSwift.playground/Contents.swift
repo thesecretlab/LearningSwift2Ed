@@ -1007,12 +1007,12 @@ public class AccessControl {
     // END public_property
     
     // BEGIN private_property
-    // Only accessible in this source file
+    // Only accessible in this class
     private var privateProperty = 123
     // END private_property
     
     // BEGIN private_setter_property
-    // The setter is private, so other files can't modify it
+    // The setter is fileprivate, so other files can't modify it
     fileprivate(set) var privateSetterProperty = 123
     // END private_setter_property
 }

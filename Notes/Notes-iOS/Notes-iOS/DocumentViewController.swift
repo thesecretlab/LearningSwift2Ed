@@ -691,8 +691,8 @@ extension DocumentViewController : UICollectionViewDataSource,
                             if let settingsURL = URL(
                                 string: UIApplicationOpenSettingsURLString) {
                                 
-                                UIApplication.shared
-                                    .openURL(settingsURL)
+                                UIApplication.shared.open(settingsURL, options: [:], completionHandler: nil)
+                                
                             }
                             
                     }))

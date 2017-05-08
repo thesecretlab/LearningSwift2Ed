@@ -1,11 +1,11 @@
-# Learning Swift 3
+# Learning Swift, 2nd Edition
 
 
 <img src="http://akamaicovers.oreilly.com/images/0636920053989/lrg.jpg" alt="Learning Swift cover" width="100px;" align="right">
 
-This repo contains the code for [Secret Lab](http://www.secretlab.com.au)'s book, *Learning Swift 3*. 
+This repo contains the code for [Secret Lab](http://www.secretlab.com.au)'s book, *Learning Swift, 2nd Edition*. 
 
-In *Learning Swift 3*, you create a family of apps, which all work together to let the user create documents with attachments. This repo contains the source code used in the book for all three of the apps - the OS X app, the iOS app and the watchOS app - as well as the playground that contains the general explanation of Swift that appears in Part 1 of the book.
+In *Learning Swift, 2nd Edition*, you create a family of apps, which all work together to let the user create documents with attachments. This repo contains the source code used in the book for all three of the apps - the OS X app, the iOS app and the watchOS app - as well as the playground that contains the general explanation of Swift that appears in Part 1 of the book.
 
 You can buy *Learning Swift* at these fine purveyors of books:
 
@@ -14,7 +14,7 @@ You can buy *Learning Swift* at these fine purveyors of books:
 
 ## How to use this repo
 
-If you're reading *Learning Swift 3*, you can use this repo to check your own code against what we made. If you just want to play with some code, 
+If you're reading *Learning Swift, 2nd Edition*, you can use this repo to check your own code against what we made. If you just want to play with some code, 
 
 **Please note:** this repo contains the *final* version of the app. We deliberately designed the app so that you spend more time *adding* code than you do *replacing* code, which means that if you browse the code in this repo, you'll probably see more code than you've written so far.
 
